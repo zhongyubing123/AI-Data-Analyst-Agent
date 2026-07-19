@@ -1,55 +1,34 @@
-Database Name:
-ecommerce
+Database: ecommerce
 
-Table:
-dws_brand_sales
-
+Table: dws_brand_sales
 Columns:
+brand
+sales_amount
+buy_count
 
-brand VARCHAR
-sales_amount DECIMAL
-buy_count INT
-
-Description:
-Stores sales statistics for each brand.
-
----------------------------------------
-
-Table:
-dws_category_sales
-
+Table: dws_category_sales
 Columns:
+category
+sales_amount
+buy_count
 
-category VARCHAR
-sales_amount DECIMAL
-buy_count INT
-
-Description:
-Stores sales statistics for each category.
-
----------------------------------------
-
-Table:
-dws_hot_items
-
+Table: dws_item_hot
 Columns:
+item_id
+item_name
+pv_count
+fav_count
+buy_count
 
-item_name VARCHAR
-sales_amount DECIMAL
-buy_count INT
-
-Description:
-Stores hot-selling products.
-
----------------------------------------
-
-Table:
-dws_user_active
-
+Table: dws_user_active
 Columns:
+user_id
+buy_count
 
-user_id BIGINT
-buy_count INT
+Rules:
 
-Description:
-Stores active user statistics.
+- Only generate SELECT statements.
+- Only use the tables and columns above.
+- Do not use SELECT *.
+- Use LIMIT for ranking queries.
+- Return SQL only.

@@ -1,168 +1,657 @@
-项目概述
-本项目基于阿里天池 UserBehavior 数据集，构建电商用户行为数据仓库与可视化大屏。
-技术栈：Python(Pandas) → MySQL/Hive → Spring Boot → Vue3 + ECharts
-数据量：6万+ 条用户行为数据
-目标：支持品牌销售、商品热度、用户活跃度、品类销售等多维分析
+# AI Data Analyst Agent
 
-原始字段名如下：
-<img src="./images/image1.png" alt="原始字段图" width="600"/>
+基于电商数据仓库与大语言模型的智能数据分析 Agent
 
-1.ETL
-使用 Python(Pandas)完成数据抽取、转换与加载，主要包括以下步骤：
-(1) 读取阿里天池用户行为数据
-(2)中文字段统一转换为英文
-(3)数据清洗(去重、去空值)
-(4)Unix 时间戳转换为标准时间
-(5)商品价格分层:根据常见电商定价策略(500<低价，500-2000中价，2000-5000高价，>5000奢侈)
-(6)导出清洗后的数据
-<img src="./images/image2.png" alt="清洗结果" width="600"/>
 
+## 1. 项目介绍
 
-2.MySQL
-（1）创建数据库
-（2）指定字符集和排序规则
-（3）ODS层并查看数据是否导入成功：用户行为原始数据表
-（4）DWD 层：商品维度表dim_goods、用户维度表 dim_users、用户行为事实表fact_behavior、商品类别维度表dim_category、品牌维度表dim_brand并插入数据
-（5）DWS层：
-a.品牌销售统计(dws_brand_sales)统计每个品牌：总销量(buy次数)总销售额(price求和)
-b.热门商品统计(dws_item_hot)统计：浏览量(pv)收藏数(fav)购买量(buy)
-c.活跃用户统计(dws_user_active)统计:用户id,行为数据，购买数据
-d.商品类别统计(dws_category_sales)统计：种类id,种类名称，购买数量，种类总销量
-注意：同一个item_id数量有多个不能作为主键，同一个item_id有多个价格，随着行为(促销、优惠券)而变化
-<img src="./images/image3.png" alt="item_id价格图" width="600"/>
-可以看到price 是行为属性,不是商品属性，因此价格仅存在behavior表里
-采用星型模型设计数据仓库，将商品、用户、品牌、类别拆分为维度表，将用户行为(包括价格与行为时间)作为事实表存储，从而支持后续的多维分析与推荐系统构建。
-MAX() 在 SQL 中用于聚合分组后的最大值，在数仓建模中通常用于保证group by合法性，但不一定代表业务真实含义，
-在goods表里没有价格，使用max()没有影响
+本项目基于阿里天池 UserBehavior 用户行为数据，构建电商数据仓库，并结合 DeepSeek 大语言模型开发 AI Data Analyst Agent。
 
-<img src="./images/image4.png" alt="星型模型" width="600"/>
+系统实现从数据采集、ETL、数仓建模到 AI 自然语言分析的完整流程，使用户可以通过自然语言查询业务数据，并自动生成分析结果。
 
+项目主要包含：
 
-3.springboot（java）接口连接mysql获取dws的四张表
+- 电商数据仓库平台
+- AI 数据分析 Agent
+- 数据可视化分析系统
 
-<img src="./images/image5.png" alt="架构图" width="600"/>
 
-<img src="./images/image6.png" alt="架构图" width="600"/>
+核心目标：
 
-<img src="./images/image7.png" alt="yml" width="600"/>
+> 用户提出业务问题，AI 自动理解需求，查询真实业务数据，并生成分析结果。
 
 
+---
 
+# 2. 系统架构
 
 
+```
+                User
 
+                 ↓
 
+          Vue3 Chat / Dashboard
 
+                 ↓
 
+              FastAPI
 
+                 ↓
 
+        AI Data Analyst Agent
 
+        ┌────────┼────────┐
 
+        ↓        ↓        ↓
 
+     NL2SQL     RAG    Chart Agent
 
+        ↓        ↓        ↓
 
+      MySQL    FAISS   ECharts
 
+                 ↓
 
-（1）用户活跃接口
-<img src="./images/image8.png" alt="用户活跃接口" width="600"/>
+          Hive / MySQL 数仓
 
+```
 
 
+---
 
-（2）品种销售接口
-<img src="./images/image9.png" alt="品种销售接口" width="600"/>
+# 3. 技术栈
 
 
+## 数据开发
 
+- Python
+- Pandas
+- MySQL
+- Hive
+- SQL
+- SparkSQL（优化方向）
 
 
+## AI Agent
 
+- DeepSeek API
+- FastAPI
+- Prompt Engineering
+- Function Calling
+- NL2SQL
+- Multi-Step Agent
+- RAG
+- FAISS
+- Sentence Transformer
 
 
-（3）品牌销售接口
-<img src="./images/image10.png" alt="品牌销售接口" width="600"/>
+## 前端
 
+- Vue3
+- Axios
+- ECharts
 
 
+---
 
+# 4. 数据仓库建设
 
 
+数据来源：
 
+阿里天池 UserBehavior 用户行为数据
 
 
-（4）热门商品表
-<img src="./images/image11.png" alt="热门商品接口" width="600"/>
+数据规模：
 
+```
+6万+ 用户行为数据
+```
 
-5.Vue3+echarts+axios可视化
 
-<img src="./images/image12.png" alt="架构图" width="600"/>
+数据流程：
 
-<img src="./images/image13.png" alt="饼图" width="600"/>
+```
+Raw Data
 
-<img src="./images/image14.png" alt="条形图" width="600"/>
+↓
 
-<img src="./images/image15.png" alt="圆环图" width="600"/>
+Python ETL
 
-<img src="./images/image16.png" alt="柱状图" width="600"/>
+↓
 
-6.优化：mysql的查询速度太慢
-hive
+ODS
 
-A.启动Hadoop：rm -rf /opt/module/hadoop-3.1.3/tmp
-hdfs namenode -format
-Start-dfs.sh
-Start-yarn.sh
-jps
-    <img src="./images/image17.png" alt="jps" width="600"/>         
+↓
 
-B.启动hive：hive
-<img src="./images/image18.png" alt="hive" width="600"/>
-C.采用hive进行数仓迁移：
-将 MySQL 中的 ODS/DWD/DWS 表迁移至 Hive
-SQL 语句可复用，需适配 HiveQL 语法差异,具体代码查看hive_sql.txt
-问题A：
-导入数据（虽然原数据集有hive的保留字，但是load会忽略表头直接将字段按顺序传入新表，所以不影响，直接传！）
-<img src="./images/image19.png" alt="导入数据" width="600"/>
+DWD
 
-所有数据导入成功！
-<img src="./images/image20.png" alt="维度表" width="600"/>
-维度表创建并数据插入成功！
-<img src="./images/image21.png" alt="ods" width="600"/>
-ods表数据导入成功!
+↓
 
-<img src="./images/image22.png" alt="dws" width="600"/>
+DWS
 
-<img src="./images/image23.png" alt="dws" width="600"/>
+↓
 
-<img src="./images/image24.png" alt="dws" width="600"/>
+AI分析
 
-<img src="./images/image25.png" alt="dws" width="600"/>
+```
 
-<img src="./images/image26.png" alt="dws" width="600"/>
-Dws层表数据插入成功！
 
-<img src="./images/image27.png" alt="dwd" width="600"/>
+采用星型模型设计：
 
-<img src="./images/image28.png" alt="dwd" width="600"/>
 
-<img src="./images/image29.png" alt="dwd" width="600"/>
+```
+              dim_goods
 
-<img src="./images/image30.png" alt="dwd" width="600"/>
 
+                  |
 
+dim_brand -- fact_behavior -- dim_users
 
 
-使用 Hive 完成 ODS、DWD、DWS 分层建模，对汇总结果同步至 MySQL，由 Spring Boot 提供 RESTful 接口，Vue3 + ECharts 实现数据可视化。
+                  |
 
-（2）使用 SparkSQL 替代 ETL 中的 Pandas，提升大数据量处理性能
-提交命令：
-spark-submit \
---master local[*] \
- --driver-memory 4G \
-etl_sparksql.py
+            dim_category
 
- Aaa.替代ETL 工具：用 Spark SQL 替代 Python (Pandas) 完成清洗和加载
-Hive默认使用 MapReduce，速度较慢
-Bbb.统一的分析入口（替代 Hive CLI）：通过 spark.sql() 在编程接口中提交 SQL，操作 Hive 表。
-还在规划中。。。。
+```
+
+
+## 数据分层
+
+
+### ODS层
+
+保存原始用户行为数据：
+
+```
+ods_user_behavior
+```
+
+
+### DWD层
+
+明细数据：
+
+- dim_goods
+- dim_users
+- dim_brand
+- dim_category
+- fact_behavior
+
+
+### DWS层
+
+业务指标汇总：
+
+| 表 | 功能 |
+|-|-|
+| dws_brand_sales | 品牌销售分析 |
+| dws_item_hot | 热门商品分析 |
+| dws_user_active | 用户活跃分析 |
+| dws_category_sales | 品类销售分析 |
+
+
+
+---
+
+# 5. Hive 数仓迁移
+
+
+为了提升数据处理能力，将 MySQL 数仓迁移至 Hive。
+
+
+完成：
+
+- Hadoop环境搭建
+- Hive部署
+- ODS/DWD/DWS迁移
+
+
+架构：
+
+```
+MySQL
+
+↓
+
+Hive
+
+↓
+
+ODS/DWD/DWS
+
+↓
+
+分析服务
+
+```
+
+
+---
+
+# 6. AI Data Analyst Agent
+
+
+## Agent流程
+
+
+```
+用户问题
+
+↓
+
+DeepSeek理解需求
+
+↓
+
+Agent任务规划
+
+↓
+
+NL2SQL生成SQL
+
+↓
+
+SQL安全检查
+
+↓
+
+MySQL查询
+
+↓
+
+AI分析回答
+
+```
+
+
+---
+
+## 核心能力
+
+
+### 1. NL2SQL
+
+通过数据库 Schema 注入，让模型理解数据库结构。
+
+
+例如：
+
+用户：
+
+```
+销量最高的品牌有哪些？
+```
+
+
+AI自动生成SQL并查询：
+
+```sql
+SELECT 
+brand,
+SUM(sales_amount)
+FROM dws_brand_sales
+GROUP BY brand
+ORDER BY sales_amount DESC;
+```
+
+
+---
+
+### 2. Function Calling
+
+
+实现：
+
+```
+DeepSeek
+
+↓
+
+Tool Calling
+
+↓
+
+MySQL Tool
+
+↓
+
+Database
+
+↓
+
+Result
+
+↓
+
+AI Answer
+
+```
+
+
+AI能够根据问题自动调用数据库工具。
+
+
+---
+
+### 3. Multi-Step Agent
+
+
+支持：
+
+- Agent任务规划
+- 多轮Tool Calling
+- ReAct推理流程
+- Conversation Memory
+
+
+流程：
+
+```
+Reason
+
+↓
+
+Tool
+
+↓
+
+Observation
+
+↓
+
+Final Answer
+
+```
+
+
+---
+
+### 4. RAG知识库
+
+
+构建企业知识库：
+
+```
+knowledge
+
+├── business.md
+
+└── project.md
+
+```
+
+
+流程：
+
+```
+Document
+
+↓
+
+Embedding
+
+↓
+
+FAISS
+
+↓
+
+Vector Search
+
+↓
+
+DeepSeek
+
+```
+
+
+支持企业业务知识问答。
+
+
+---
+
+### 5. SQL安全控制
+
+
+增加 SQL Guard，对 AI 生成SQL进行安全检测。
+
+
+允许：
+
+```
+SELECT
+```
+
+
+禁止：
+
+```
+DELETE
+UPDATE
+INSERT
+DROP
+ALTER
+TRUNCATE
+```
+
+
+执行流程：
+
+```
+AI生成SQL
+
+↓
+
+SQL Guard
+
+↓
+
+MySQL
+
+```
+
+
+保证数据库只读分析。
+
+
+---
+
+### 6. AI可视化分析
+
+
+AI自动生成 ECharts 配置。
+
+
+流程：
+
+```
+用户需求
+
+↓
+
+SQL查询
+
+↓
+
+数据分析
+
+↓
+
+生成ECharts Option
+
+↓
+
+Vue展示
+
+```
+
+
+支持：
+
+- 柱状图
+- 饼图
+- 折线图
+
+
+---
+
+# 7. 项目目录
+
+
+```
+AI-Data-Analyst-Agent
+
+├── ai-service
+│
+│   ├── services
+│   ├── tools
+│   ├── security
+│   ├── prompts
+│   ├── knowledge
+│   └── app.py
+│
+├── vue-dashboard
+│
+├── sql
+│
+├── docs
+│   ├── Sprint01.md
+│   ├── Sprint02.md
+│   └── ...
+│
+└── README.md
+
+```
+
+
+---
+
+# 8. 项目运行
+
+
+## 后端
+
+
+安装依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+
+配置：
+
+```
+.env
+```
+
+
+启动：
+
+```bash
+uvicorn app:app --reload
+```
+
+
+## 前端
+
+
+```bash
+npm install
+
+npm run dev
+```
+
+
+---
+
+# 9. 项目成果
+
+
+目前系统具备：
+
+
+## 数据工程能力
+
+✅ Python ETL
+
+✅ 数据仓库建模
+
+✅ ODS/DWD/DWS分层
+
+✅ Hive离线分析
+
+
+## AI Agent能力
+
+✅ Prompt Engineering
+
+✅ Function Calling
+
+✅ NL2SQL
+
+✅ Multi-Step Agent
+
+✅ RAG知识库
+
+✅ SQL安全控制
+
+
+## 数据分析能力
+
+✅ Vue3可视化
+
+✅ ECharts图表生成
+
+✅ AI业务分析
+
+
+---
+
+# 10. 后续优化
+
+
+- SparkSQL替代部分ETL任务
+- SQL执行日志
+- 查询历史记录
+- 更复杂业务分析
+- Multi-Agent协作
+
+
+---
+
+# 11. 总结
+
+
+本项目将传统数据仓库与大语言模型结合，构建了一个企业级 AI 数据分析 Agent。
+
+系统不仅具备数据清洗、数仓建模和业务分析能力，同时支持自然语言查询、智能SQL生成、知识库增强和自动化可视化分析。
+
+项目体现了：
+
+- 数据工程能力
+- 数据仓库设计能力
+- AI Agent开发能力
+- 大模型应用能力
+
+## 项目目前存在的不足
+
+1. **数据仓库指标体系不够完善**
+   当前 DWS 层主要支持品牌销售、商品热度、用户活跃、品类销售等基础分析，但缺少商品销售额、平均价格、转化率、用户价值等更丰富的业务指标，导致 AI Agent 在部分业务问题查询时无法获取对应数据。
+
+2. **Hive 与 SparkSQL 应用深度不足**
+   目前已完成 MySQL 到 Hive 的数仓迁移，但 Hive 主要用于数据存储和查询，缺少分区表、分桶、ORC 等优化；SparkSQL 仍处于规划阶段，尚未完全替代 ETL 流程。
+
+3. **AI Agent 上下文能力仍需优化**
+   当前 Agent 已实现多轮对话和简单上下文记忆，但记忆主要依赖程序内存，系统重启后数据会丢失，后续可引入 Redis 等长期记忆方案提升连续对话能力。
+
+4. **SQL 安全控制能力较基础**
+   当前通过 Prompt 约束和关键词检测实现 SQL Guard，可以拦截危险 SQL，但安全规则仍较简单，后续可结合 SQL Parser 实现更精确的 SQL 权限控制。
+
+5. **RAG 知识库规模较小**
+   当前知识库主要包含项目介绍和业务指标定义，文档数量有限，后续可以增加数据库说明、业务规则、指标口径等企业文档，并优化文档切片和检索策略。
+
+6. **系统工程化能力仍需提升**
+   当前系统已完成 AI Agent、数据仓库和可视化功能集成，但日志管理、Docker 部署、异常监控、权限管理等企业级能力仍需要进一步完善。

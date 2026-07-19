@@ -1,100 +1,79 @@
+# =========================
 # Environment
+# =========================
 .env
 *.env
 
+# =========================
 # Python
+# =========================
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 *.pyc
+.pytest_cache/
 
+.venv/
+venv/
+env/
 
-# ===== Java 后端 (restful_api) =====
-**/target/
-**/.idea/
-**/*.iml
-**/*.iws
-**/*.ipr
-**/*.class
-**/*.jar
-**/*.war
+# Logs
+*.log
+logs/
 
-# ===== Vue 前端 (vue) =====
-**/node_modules/
-**/dist/
-**/.vscode/
-**/.DS_Store
-**/*.log
-**/npm-debug.log*
-**/yarn-debug.log*
-**/yarn-error.log*
+# Vector Store（运行生成，可重新构建）
+vector_store/
+*.faiss
+*.pkl
 
-# ===== Python (etl 如果使用 Python) =====
-**/__pycache__/
-**/*.pyc
-**/.venv/
-**/venv/
-**/env/
+# =========================
+# Java (Spring Boot)
+# =========================
+target/
+*.class
+*.jar
 
-# ===== 压缩包（防止再次误传） =====
+.idea/
+*.iml
+
+# 不上传真实配置
+application.yml
+application-*.yml
+
+# 保留配置模板
+!application-example.yml
+
+# =========================
+# Vue / Node
+# =========================
+node_modules/
+dist/
+
+# =========================
+# Dataset
+# =========================
+*.csv
+*.xlsx
+UserBehavior_*.csv
+UserBehavior_*.zip
+
+# =========================
+# Archives
+# =========================
 *.zip
 *.rar
 *.7z
 *.tar.gz
 
-# ===== 数据文件（视情况，若 etl 中有大文件） =====
-**/*.csv
-**/*.xlsx
-**/*.json
-# 如果你有特定的用户行为数据文件，也可以单独写一行
-**/UserBehavior_*.csv
-**/UserBehavior_*.zip
+# =========================
+# IDE
+# =========================
+.vscode/
 
-# ===== 操作系统垃圾 =====
-Thumbs.db
-desktop.ini# ===== Java 后端 (restful_api) =====
-**/target/
-**/.idea/
-**/*.iml
-**/*.iws
-**/*.ipr
-**/*.class
-**/*.jar
-**/*.war
-
-# ===== Vue 前端 (vue) =====
-**/node_modules/
-**/dist/
-**/.vscode/
-**/.DS_Store
-**/*.log
-**/npm-debug.log*
-**/yarn-debug.log*
-**/yarn-error.log*
-
-# ===== Python (etl 如果使用 Python) =====
-**/__pycache__/
-**/*.pyc
-**/.venv/
-**/venv/
-**/env/
-
-# ===== 压缩包（防止再次误传） =====
-*.zip
-*.rar
-*.7z
-*.tar.gz
-
-# ===== 数据文件（视情况，若 etl 中有大文件） =====
-**/*.csv
-**/*.xlsx
-**/*.json
-# 如果你有特定的用户行为数据文件，也可以单独写一行
-**/UserBehavior_*.csv
-**/UserBehavior_*.zip
-
-# ===== 操作系统垃圾 =====
+# =========================
+# System
+# =========================
+.DS_Store
 Thumbs.db
 desktop.ini
-# 忽略所有环境配置文件
-**/application.yml
-**/application-*.yml
-!**/application-example.yml   # 例外：允许上传示例模板

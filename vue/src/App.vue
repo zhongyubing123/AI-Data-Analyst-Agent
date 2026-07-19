@@ -1,7 +1,7 @@
 <template>
-  <Dashboard />
+  <Chat />
 </template>
 
 <script setup>
-import Dashboard from "./views/Dashboard.vue"
+import Chat from "./views/Chat.vue";
 </script>

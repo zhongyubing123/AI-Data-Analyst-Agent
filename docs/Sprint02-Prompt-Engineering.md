@@ -1,290 +1,106 @@
-# Sprint 02：Prompt Engineering（提示词工程）
+# Sprint 02：Prompt Engineering
 
-## 项目名称
-
-AI Data Analyst Agent
-
----
-
-## Sprint 信息
-
-| 项目 | 内容 |
-|------|------|
-| Sprint | Sprint 02 |
-| 开发时间 | 2026-07 |
-| 开发阶段 | Prompt Engineering |
-| 开发语言 | Python |
-| 框架 | FastAPI |
-| 大模型 | DeepSeek Chat |
+> Date：2026-07-16
+> Author：zhongyubing
 
 ---
 
-# 一、开发目标
+# Sprint Goal
 
-在 Sprint01 中，项目已经完成了 FastAPI 与 DeepSeek API 的集成，实现了基本的 AI 对话能力。
-
-但是，此时的大模型仍然属于通用聊天机器人，不具备固定身份，也不能按照企业业务场景回答问题。
-
-因此，本阶段需要引入 Prompt Engineering（提示词工程），为 AI 设置固定角色，使其成为一名专业的电商数据分析助手，为后续 Tool Calling、RAG、Memory 等功能奠定基础。
+引入 Prompt Engineering，将系统 Prompt 独立管理，并封装 DeepSeek 对话服务，实现基础上下文记忆，为后续 AI Agent 开发提供统一入口。
 
 ---
 
-# 二、项目结构
+# Background
 
-本 Sprint 完成后的 AI 服务目录如下：
+Sprint01 已完成 FastAPI 与 DeepSeek API 的连接，实现了基础 AI 对话能力。
 
-```text
-ai-service
-│
-├── app.py
-├── .env
-├── requirements.txt
-│
-├── prompts
-│   └── system_prompt.txt
-│
-└── services
-    └── deepseek_service.py
-```
+本阶段进一步优化模型调用方式，将 Prompt 从代码中分离，并增加简单的对话上下文管理，提高回答的一致性。
+
+---
+
+# Project Structure
 
 新增目录：
 
+```text
+ai-service/
+│
+├── prompts/
+│   ├── system_prompt.txt
+│   └── schema.txt
+│
+└── services/
+    ├── llm_client.py
+    └── deepseek_service.py
 ```
-prompts/
-```
-
-用于统一管理 Prompt。
 
 ---
 
-# 三、为什么需要 Prompt？
+# Prompt Management
 
-默认情况下，大模型属于通用模型，例如：
-
-用户：
-
-```
-为什么销量下降？
-```
-
-模型可能回答：
-
-```
-销量下降可能有很多原因，例如市场竞争、季节变化等……
-```
-
-这种回答虽然正确，但没有企业数据分析师的专业风格。
-
-因此，需要增加 System Prompt，对模型进行角色约束。
-
----
-
-# 四、System Prompt 设计
-
-新增文件：
+新增：
 
 ```
 prompts/system_prompt.txt
 ```
 
-内容如下：
+用于统一维护 AI 身份和回答规则。
 
-```text
-# Role
+新增：
 
-你是一名企业级 AI 数据分析助手。
-
-## 你的职责
-
-1. 回答有关电商数据分析的问题。
-2. 帮助分析销量、品牌、商品、用户行为。
-3. 不编造数据库中的数据。
-4. 如果没有真实数据，明确告诉用户需要查询数据库。
-5. 输出尽量专业、清晰、有条理。
-
-## 输出格式
-
-【分析】
-
-......
-
-【原因】
-
-......
-
-【建议】
-
-......
-
-## 注意
-
-不要随意编造统计结果。
-
-如果问题需要数据库数据，请说明：
-
-"该问题需要查询数据库才能得到准确答案。"
 ```
+prompts/schema.txt
+```
+
+用于保存数据库 Schema，在模型回答过程中一起加载。
 
 ---
 
-# 五、为什么把 Prompt 独立出来？
+# LLM Client
 
-企业开发一般不会把 Prompt 写死在 Python 代码中。
+新增：
 
-例如：
+```
+services/llm_client.py
+```
+
+统一创建 DeepSeek Client。
 
 ```python
-system_prompt = """
-xxxx
-"""
+client = OpenAI(
+    api_key=os.getenv("DEEPSEEK_API_KEY"),
+    base_url="https://api.deepseek.com"
+)
 ```
 
-虽然能够运行，但是存在以下问题：
-
-- Prompt 修改需要重新部署程序
-- Prompt 过长导致代码可读性下降
-- 产品经理无法独立维护 Prompt
-
-因此，本项目采用：
-
-```
-Prompt
-↓
-
-TXT 文件
-
-↓
-
-Python 动态读取
-```
-
-这种方式更加符合企业开发规范。
+后续所有模型调用均复用该 Client。
 
 ---
 
-# 六、Prompt 加载
+# Conversation Memory
 
 在：
 
 ```
-services/deepseek_service.py
+deepseek_service.py
 ```
 
-中新增：
+中增加简单上下文记忆。
 
 ```python
-from pathlib import Path
+conversation_history = []
 
-PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "system_prompt.txt"
-
-with open(PROMPT_PATH, "r", encoding="utf-8") as f:
-    SYSTEM_PROMPT = f.read()
+MAX_HISTORY = 10
 ```
 
-这样程序启动时即可自动读取 Prompt。
+每次请求都会携带最近的对话记录，提高连续对话效果。
 
 ---
 
-# 七、调用 DeepSeek
+# Running
 
-原来的 messages：
-
-```python
-messages = [
-    {
-        "role": "user",
-        "content": message
-    }
-]
-```
-
-升级为：
-
-```python
-messages = [
-    {
-        "role": "system",
-        "content": SYSTEM_PROMPT
-    },
-    {
-        "role": "user",
-        "content": message
-    }
-]
-```
-
-其中：
-
-System Message：
-
-负责定义 AI 身份。
-
-User Message：
-
-负责传递用户问题。
-
----
-
-# 八、整体调用流程
-
-```text
-用户输入
-
-↓
-
-FastAPI
-
-↓
-
-读取 Prompt
-
-↓
-
-DeepSeek API
-
-↓
-
-生成回答
-
-↓
-
-返回用户
-```
-
-流程图：
-
-```text
-┌────────────┐
-│    User    │
-└─────┬──────┘
-      │
-      ▼
-┌────────────┐
-│  FastAPI   │
-└─────┬──────┘
-      │
-      ▼
-┌────────────────────┐
-│ System Prompt      │
-│ (system_prompt.txt)│
-└─────┬──────────────┘
-      │
-      ▼
-┌────────────┐
-│ DeepSeek   │
-└─────┬──────┘
-      │
-      ▼
-┌────────────┐
-│ AI Response│
-└────────────┘
-```
-
----
-
-# 九、测试
-
-启动项目：
+启动：
 
 ```bash
 uvicorn app:app --reload
@@ -302,118 +118,88 @@ http://127.0.0.1:8000/docs
 POST /chat
 ```
 
-输入：
-
-```json
-{
-    "message":"为什么品牌销量下降？"
-}
-```
-
-测试结果：
-
-AI 能够按照 Prompt 设定，以专业数据分析师身份回答问题，并采用：
-
-```
-分析
-
-原因
-
-建议
-```
-
-三段式输出。
+验证 Prompt 加载和上下文记忆是否生效。
 
 ---
 
-# 十、本 Sprint 遇到的问题
-
-## 1、FastAPI 无法启动
-
-错误：
+# Architecture
 
 ```
-Could not import module "app"
+User
+   │
+HTTP
+   │
+FastAPI
+   │
+DeepSeek Service
+   │
+System Prompt
+   │
+Schema
+   │
+DeepSeek API
 ```
 
-原因：
+---
 
-启动目录错误。
+# Development Summary
 
-解决方案：
+完成内容：
 
-进入：
+- [x] Prompt 外置管理
+- [x] Schema 加载
+- [x] LLM Client 封装
+- [x] DeepSeek Service 封装
+- [x] Conversation Memory
 
-```
-ai-service
-```
+---
 
-目录后执行：
+# Technical Stack
+
+- Python
+- FastAPI
+- OpenAI SDK
+- DeepSeek API
+- pathlib
+
+---
+
+# Key Learning
+
+本阶段学习内容：
+
+- Prompt Engineering
+- System Prompt
+- Prompt 外置管理
+- LLM Client 封装
+- Conversation Memory
+
+---
+
+# Next Sprint
+
+Sprint 03：Intent Planner
+
+目标：
+
+- 引入 Planner
+- 实现用户意图识别
+- 区分聊天、数据库查询和知识库查询
+
+---
+
+# Git Commit
 
 ```bash
-uvicorn app:app --reload
+git add .
+
+git commit -m "feat: add prompt engineering and conversation memory"
+
+git push
 ```
 
 ---
 
-## 2、ImportError
+# Sprint Status
 
-错误：
-
-```
-from services.deepseek_service import chat
-```
-
-原因：
-
-修改 Prompt 时误覆盖了 deepseek_service.py 文件，导致 chat() 方法丢失。
-
-解决方案：
-
-恢复 chat() 方法，并增加 Prompt 加载逻辑。
-
----
-
-## 3、GitHub Push Protection
-
-错误：
-
-```
-Push cannot contain secrets
-```
-
-原因：
-
-DeepSeek API Key 被提交到了 Git。
-
-解决方案：
-
-- 使用 .gitignore 忽略 .env
-- 删除 Git 中的 API Key
-- 重新提交
-- Push 成功
-
----
-
-# 十一、本 Sprint 收获
-
-完成了 Prompt Engineering 的基础能力。
-
-掌握了：
-
-✅ FastAPI
-
-✅ DeepSeek API
-
-✅ System Prompt
-
-✅ Prompt 外置管理
-
-✅ Path 文件读取
-
-✅ OpenAI Messages 结构
-
-✅ GitHub Secret Protection
-
----
-
+✅ Sprint 02 Completed

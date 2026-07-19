@@ -1,234 +1,330 @@
-# Sprint05 开发文档 —— Function Calling 与 MySQL Tool 调用
+# Sprint 05：Planner + NL2SQL + SQL Guard
 
-## 一、开发目标
+> Date：2026-07-18  
+> Author：zhongyubing
 
-本 Sprint 的目标是在 AI Agent 中实现 Function Calling（函数调用）机制，使大语言模型不仅能够进行自然语言对话，还能够根据用户的问题自动调用数据库查询工具，并结合查询结果生成最终回答。
-
----
-
-## 二、实现目标
-
-完成以下功能：
-
-- 注册 MySQL 查询工具（Tool）
-- DeepSeek 返回 Tool Call
-- Python 解析 Tool Call
-- 调用 MySQL 数据库
-- 获取数据库查询结果
-- 将查询结果返回给 DeepSeek
-- DeepSeek 根据真实数据生成最终回答
-
-实现 AI → Tool → Database → AI 的完整闭环。
 
 ---
 
-## 三、系统流程
+# Sprint Goal
 
-```text
-                User
-                  │
-                  ▼
-        DeepSeek（第一次请求）
-                  │
-                  ▼
-          Function Calling
-                  │
-                  ▼
-        Python Tool Executor
-                  │
-                  ▼
-              MySQL Database
-                  │
-                  ▼
-         查询结果(Result)
-                  │
-                  ▼
-        DeepSeek（第二次请求）
-                  │
-                  ▼
-             最终回答(User)
+
+实现 AI Data Analyst Agent 的自动数据查询流程。
+
+
+本 Sprint 引入：
+
+- Planner 意图识别
+- SQL Generator
+- SQL Guard
+
+
+使用户能够通过自然语言描述业务需求，Agent 自动生成 SQL，并通过 MySQL Tool 查询真实业务数据。
+
+
+---
+
+# Background
+
+
+前几个 Sprint 已完成：
+
+
+## Sprint01
+
+完成：
+
+- FastAPI 服务
+- DeepSeek API 接入
+
+
+流程：
+
+```
+User
+
+↓
+
+FastAPI
+
+↓
+
+DeepSeek
 ```
 
----
 
-## 四、项目结构
-
-```text
-ai-service
-│
-├── app.py
-│
-├── services
-│   └── deepseek_service.py
-│
-├── tools
-│   └── mysql_tool.py
-│
-├── prompts
-│   └── system_prompt.txt
-│
-└── .env
-```
 
 ---
 
-## 五、核心实现
 
-### 1、注册 Tool
+## Sprint03
 
-向 DeepSeek 注册 MySQL 查询工具。
+完成：
 
-```python
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "query_mysql",
-            "description": "Query sales data from MySQL database",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "sql": {
-                        "type": "string"
-                    }
-                },
-                "required": ["sql"]
-            }
-        }
-    }
-]
+- MySQL Tool
+- Python 数据库访问能力
+
+
+流程：
+
 ```
+Python
+
+↓
+
+MySQL Tool
+
+↓
+
+MySQL
+
+```
+
+
 
 ---
 
-### 2、第一次调用 DeepSeek
 
-发送用户问题，并允许模型调用工具。
+## Sprint04
 
-```python
-response = client.chat.completions.create(
-    model="deepseek-chat",
-    messages=messages,
-    tools=tools
-)
-```
+完成：
 
----
+- Agent Service
 
-### 3、获取 Tool Call
+负责协调：
 
-解析模型返回的工具调用请求。
+- LLM
+- Database Tool
 
-```python
-assistant_message = response.choices[0].message
 
-tool_call = assistant_message.tool_calls[0]
-```
+但是之前的数据查询流程仍然需要固定 SQL。
 
-输出示例：
 
-```text
-工具名称：
-query_mysql
-
-工具参数：
-{
-    "sql":"SELECT ..."
-}
-```
-
----
-
-### 4、执行数据库查询
-
-当前 Sprint 为了验证 Function Calling 流程，采用固定 SQL。
+例如：
 
 ```python
 sql = """
-SELECT
-    brand,
-    SUM(sales_amount) AS total_sales
+SELECT *
 FROM dws_brand_sales
-GROUP BY brand
-ORDER BY total_sales DESC
 LIMIT 10;
 """
-
-result = execute_query(sql)
 ```
 
-数据库返回：
 
-```text
-[
-    ('Apple', 853000.5),
-    ('Huawei', 801234.8),
-    ...
-]
-```
+无法根据用户问题动态生成查询。
+
+
+因此 Sprint05 目标：
+
+实现自然语言到 SQL 的转换。
+
 
 ---
 
-### 5、返回 Tool 结果
+# Project Architecture
 
-将数据库查询结果发送回 DeepSeek。
 
-```python
-messages.append(assistant_message)
+升级后的 Agent 流程：
 
-messages.append(
-    {
-        "role": "tool",
-        "tool_call_id": tool_call.id,
-        "content": str(result)
-    }
-)
+
 ```
+                 User
+
+                  │
+
+                  ▼
+
+              FastAPI
+
+                  │
+
+                  ▼
+
+            Agent Service
+
+                  │
+
+                  ▼
+
+              Planner
+
+                  │
+
+                  ▼
+
+          SQL Generator
+
+                  │
+
+                  ▼
+
+             SQL Guard
+
+                  │
+
+                  ▼
+
+            MySQL Tool
+
+                  │
+
+                  ▼
+
+              MySQL
+
+                  │
+
+                  ▼
+
+           Query Result
+
+                  │
+
+                  ▼
+
+          DeepSeek Analysis
+
+                  │
+
+                  ▼
+
+              Answer
+
+```
+
 
 ---
 
-### 6、第二次调用 DeepSeek
+# Project Structure
 
-根据数据库查询结果生成最终回答。
 
-```python
-response = client.chat.completions.create(
-    model="deepseek-chat",
-    messages=messages
-)
+新增：
+
+
+```
+ai-service
+
+│
+
+├── app.py
+
+│
+
+├── services
+
+│   ├── agent_service.py
+
+│   ├── planner_service.py
+
+│   └── sql_generator.py
+
+│
+
+├── tools
+
+│   └── mysql_tool.py
+
+│
+
+├── security
+
+│   └── sql_guard.py
+
+│
+
+├── prompts
+
+│   ├── system_prompt.txt
+
+│   ├── schema.txt
+
+│   └── planner_prompt.txt
+
+│
+
+└── .env
+
 ```
 
-最终返回：
-
-```python
-return response.choices[0].message.content
-```
 
 ---
 
-## 六、测试
+# Core Implementation
 
-### 测试一
 
-输入：
+## 1. Planner
 
-```text
-销量最高品牌有哪些？
+
+新增：
+
+```
+services/planner_service.py
 ```
 
-AI 返回：
 
-```text
-我来查询数据库中销量最高的品牌。
+功能：
+
+分析用户问题。
+
+
+输出：
+
+```json
+{
+ "intent":"sql",
+ "table":"dws_brand_sales",
+ "reason":"查询品牌销售排名"
+}
 ```
 
-随后调用：
 
-```text
-query_mysql()
+支持意图：
+
+
+```
+sql
+
+chart
+
+rag
+
+chat
 ```
 
-数据库执行 SQL：
+
+---
+
+# 2. SQL Generator
+
+
+新增：
+
+```
+services/sql_generator.py
+```
+
+
+功能：
+
+根据：
+
+- 用户问题
+- 数据库 Schema
+
+
+生成 SQL。
+
+
+例如：
+
+用户：
+
+```
+查询销量最高的品牌
+```
+
+
+生成：
 
 ```sql
 SELECT
@@ -240,89 +336,307 @@ ORDER BY total_sales DESC
 LIMIT 10;
 ```
 
-最终返回：
-
-```text
-销量最高的品牌为 XXX，
-销售额为 XXXXX。
-```
 
 ---
 
-### 测试二
+# 3. SQL Guard
 
-输入：
 
-```text
-你好
+新增：
+
+```
+security/sql_guard.py
 ```
 
-由于无需调用数据库：
 
-```text
-assistant_message.tool_calls == None
+功能：
+
+限制 AI 生成危险 SQL。
+
+
+禁止：
+
+```
+DELETE
+
+UPDATE
+
+DROP
+
+ALTER
+
+INSERT
+
+CREATE
+
+TRUNCATE
 ```
 
-AI 直接回复普通聊天内容。
+
+只允许：
+
+```sql
+SELECT
+```
+
+
+提高数据库安全性。
+
 
 ---
 
-## 七、Sprint05 成果
+# 4. MySQL Tool
 
-本 Sprint 完成了 AI Agent 的 Function Calling 核心能力。
 
-目前系统已经具备：
-
-- DeepSeek Function Calling
-- Tool 注册
-- Tool Call 解析
-- Python Tool Executor
-- MySQL 查询
-- 二次调用大模型
-- 基于真实数据库结果生成回答
-
-实现了完整的 AI 工具调用闭环。
-
----
-
-## 八、存在的问题
-
-当前版本为了验证 Function Calling 流程，数据库查询 SQL 采用固定写法：
+调用：
 
 ```python
-sql = """
-SELECT ...
-"""
+execute_query(sql)
 ```
 
-AI 虽然能够生成 Tool Call，但生成的 SQL 并未真正执行。
 
-下一阶段将升级为：
+执行 AI 生成 SQL。
 
-- 自动读取数据库 Schema
-- DeepSeek 自动生成 SQL（NL2SQL）
-- Python 执行 AI 生成的 SQL
-- 返回真实查询结果
 
-进一步实现企业级智能数据分析 Agent。
+返回真实数据库结果。
+
 
 ---
 
-## 九、下一步计划（Sprint06）
+# Development Summary
 
-下一 Sprint 将实现：
 
-- 数据库 Schema 注入
-- NL2SQL（自然语言生成 SQL）
-- AI 自动执行 SQL
-- 动态数据分析
-- 多表联合查询
-- 智能数据问答
+本 Sprint 完成：
 
-最终实现真正的智能数据分析 Agent。
+
+- [x] 实现 Planner 意图识别
+- [x] 实现 SQL 自动生成
+- [x] 增加 SQL 安全校验
+- [x] Agent 接入 MySQL Tool
+- [x] 完成自然语言查询数据库流程
+
 
 ---
 
-## 十、本 Sprint 总结
+# Example
 
-Sprint05 实现了 AI Agent 的 Function Calling 能力，使系统具备调用外部工具的能力，完成了从自然语言理解到数据库查询再到智能回答的完整流程，为后续 NL2SQL 和智能数据分析奠定了基础。
+
+用户输入：
+
+
+```
+查询销量最高的品牌
+```
+
+
+Agent 流程：
+
+
+```
+用户问题
+
+↓
+
+Planner
+
+↓
+
+intent=sql
+
+↓
+
+SQL Generator
+
+↓
+
+SELECT SQL
+
+↓
+
+SQL Guard
+
+↓
+
+MySQL Tool
+
+↓
+
+查询结果
+
+↓
+
+DeepSeek总结
+
+↓
+
+回答用户
+
+```
+
+
+---
+
+# Technical Stack
+
+
+- Python 3.11
+- FastAPI
+- DeepSeek API
+- Prompt Engineering
+- PyMySQL
+- MySQL
+
+
+---
+
+# Key Learning
+
+
+本 Sprint 学习内容：
+
+
+## 1. NL2SQL 基础
+
+
+理解：
+
+自然语言
+
+↓
+
+SQL
+
+↓
+
+数据库结果
+
+
+的转换过程。
+
+
+---
+
+## 2. Prompt Engineering
+
+
+通过：
+
+- schema prompt
+- planner prompt
+
+
+提高模型生成 SQL 的准确性。
+
+
+---
+
+## 3. SQL 安全控制
+
+
+理解 AI 生成 SQL 存在风险，需要增加安全校验层。
+
+
+---
+
+# Problems
+
+
+当前版本仍存在：
+
+- SQL 生成依赖 Prompt
+- Schema 信息需要维护
+- 多表复杂查询能力有限
+
+
+后续继续优化：
+
+- RAG Schema 检索
+- 动态 Schema 获取
+- 查询结果可视化
+
+
+---
+
+# Next Sprint
+
+
+## Sprint06：RAG Knowledge Enhancement
+
+
+目标：
+
+
+利用向量数据库增强 Agent 对业务知识的理解。
+
+
+实现：
+
+- Markdown Knowledge 文档
+- Embedding
+- FAISS 向量搜索
+- Schema 检索增强
+
+
+流程：
+
+
+```
+User
+
+↓
+
+Agent
+
+↓
+
+RAG Knowledge
+
+↓
+
+SQL Generator
+
+↓
+
+MySQL
+
+↓
+
+Answer
+
+```
+
+
+---
+
+# Git Commit
+
+
+```bash
+git add .
+
+git commit -m "feat: implement planner and nl2sql workflow"
+
+git push
+```
+
+
+---
+
+# Sprint Status
+
+
+✅ Sprint 05 Completed
+
+
+Completed:
+
+```
+Planner
+
+SQL Generator
+
+SQL Guard
+
+NL2SQL V1
+
+```

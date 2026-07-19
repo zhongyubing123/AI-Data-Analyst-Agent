@@ -1,250 +1,660 @@
-# Sprint06 开发文档 —— NL2SQL（Natural Language to SQL）
+# Sprint 06：NL2SQL Enhancement
 
-## 一、开发目标
+> Date：2026-07-18  
+> Author：zhongyubing
 
-本 Sprint 的目标是在 AI Agent 中实现自然语言生成 SQL（NL2SQL）能力，使大语言模型能够根据用户输入自动生成 SQL，并查询 MySQL 数据库返回结果。
-
-相较于 Sprint05 中固定 SQL 查询，本 Sprint 将数据库结构（Schema）提供给大语言模型，使其能够根据数据库表结构动态生成 SQL，提高系统的智能化程度。
 
 ---
 
-# 二、实现目标
+# Sprint Goal
 
-完成以下功能：
 
-- 注入数据库 Schema
-- AI 自动理解数据库结构
-- AI 自动生成 SQL
-- Python 执行 AI 生成的 SQL
-- MySQL 返回查询结果
-- AI 根据查询结果生成最终回答
-- SQL 异常捕获
+提升 AI Data Analyst Agent 的自然语言数据查询能力。
 
----
 
-# 三、系统流程
+本 Sprint 引入数据库 Schema 信息，使大语言模型能够理解：
 
-```text
-             User
-               │
-               ▼
-      DeepSeek（理解问题）
-               │
-               ▼
-     根据 Schema 生成 SQL
-               │
-               ▼
-      Python 获取 SQL
-               │
-               ▼
-        MySQL Database
-               │
-               ▼
-         查询结果(Result)
-               │
-               ▼
-      DeepSeek（二次回答）
-               │
-               ▼
-            Final Answer
+- 数据库名称
+- 数据表结构
+- 字段含义
+
+
+并根据用户业务问题自动生成 SQL 查询。
+
+
+实现：
+
+```
+Natural Language
+
+↓
+
+SQL
+
+↓
+
+Database Query
+
+↓
+
+AI Analysis
+
 ```
 
+
 ---
 
-# 四、项目结构
+# Background
 
-```text
+
+前几个 Sprint 已完成：
+
+
+## Sprint03
+
+完成：
+
+- MySQL Tool
+- 数据库访问封装
+
+
+流程：
+
+```
+Python
+
+↓
+
+MySQL Tool
+
+↓
+
+MySQL
+```
+
+
+---
+
+
+## Sprint04
+
+
+完成：
+
+- Agent Service
+
+
+负责协调：
+
+- 用户请求
+- LLM
+- 数据库工具
+
+
+---
+
+
+## Sprint05
+
+
+完成：
+
+- Planner
+- SQL Generator
+- SQL Guard
+
+
+实现：
+
+```
+User Question
+
+↓
+
+Intent Recognition
+
+↓
+
+SQL Generation
+
+↓
+
+SQL Validation
+
+```
+
+
+---
+
+
+但是模型生成 SQL 时需要知道真实数据库结构。
+
+
+如果缺少 Schema 信息：
+
+模型可能生成不存在的：
+
+```
+dws_hot_items
+
+item_sales
+
+goods_sales
+
+```
+
+
+导致 SQL 执行失败。
+
+
+因此 Sprint06 增加 Schema 注入。
+
+
+---
+
+# Project Architecture
+
+
+升级后的流程：
+
+
+```
+                 User
+
+                  │
+
+                  ▼
+
+              FastAPI
+
+                  │
+
+                  ▼
+
+            Agent Service
+
+                  │
+
+                  ▼
+
+              Planner
+
+                  │
+
+                  ▼
+
+          SQL Generator
+
+                  │
+
+                  ▼
+
+          Database Schema
+
+                  │
+
+                  ▼
+
+             SQL Guard
+
+                  │
+
+                  ▼
+
+            MySQL Tool
+
+                  │
+
+                  ▼
+
+              MySQL
+
+                  │
+
+                  ▼
+
+          Query Result
+
+                  │
+
+                  ▼
+
+          DeepSeek Analysis
+
+                  │
+
+                  ▼
+
+              Answer
+
+```
+
+
+---
+
+# Project Structure
+
+
+当前结构：
+
+
+```
 ai-service
+
 │
+
 ├── app.py
+
 │
+
 ├── prompts
+
 │   ├── system_prompt.txt
-│   └── schema.txt
+
+│   ├── schema.txt
+
+│   └── planner_prompt.txt
+
 │
+
 ├── services
-│   └── deepseek_service.py
+
+│   ├── agent_service.py
+
+│   ├── planner_service.py
+
+│   └── sql_generator.py
+
 │
+
 ├── tools
+
 │   └── mysql_tool.py
+
 │
+
+├── security
+
+│   └── sql_guard.py
+
+│
+
 └── .env
+
 ```
+
 
 ---
 
-# 五、核心实现
+# Core Implementation
 
-## 1、数据库 Schema
+
+## 1. Database Schema
+
 
 新增：
 
-```text
+
+```
 prompts/schema.txt
 ```
 
-内容包含：
 
-- 数据库名称
-- 数据表名称
-- 字段名称
-- 字段说明
+用于描述数据库结构。
+
 
 例如：
 
-```text
-Table: dws_brand_sales
+
+```
+Database:
+
+ecommerce
+
+
+Tables:
+
+
+dws_brand_sales
 
 Columns:
+
 brand
+
 sales_amount
+
 buy_count
+
+
+dws_category_sales
+
+Columns:
+
+category
+
+sales_amount
+
+
+dws_item_hot
+
+Columns:
+
+item_name
+
+buy_count
+
+
+dws_user_active
+
+Columns:
+
+user_id
+
+active_days
+
+buy_count
+
 ```
+
 
 作用：
 
-帮助 DeepSeek 理解数据库结构。
+
+让模型了解：
+
+- 哪些表存在
+- 哪些字段可以查询
+- 字段业务含义
+
+
+减少 SQL 幻觉。
+
 
 ---
 
-## 2、读取 Schema
+# 2. Schema 注入 Prompt
 
-在 deepseek_service.py 中读取 schema.txt。
 
-```python
-SCHEMA_PATH = Path(__file__).parent.parent / "prompts" / "schema.txt"
+系统 Prompt 中加入 Schema：
 
-with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
-    SCHEMA = f.read()
+
 ```
+System Prompt
+
++
+
+Database Schema
+
+```
+
+
+发送给 DeepSeek。
+
+
+模型能够根据真实数据库结构生成 SQL。
+
 
 ---
 
-## 3、注入 Prompt
+# 3. SQL Generation
 
-将 System Prompt 与数据库 Schema 合并发送给 DeepSeek。
 
-```python
-messages = [
-    {
-        "role": "system",
-        "content": SYSTEM_PROMPT + "\n\n" + SCHEMA
-    }
-]
+用户输入：
+
+
+```
+查询销量最高的品牌
 ```
 
-这样模型可以知道数据库中有哪些表和字段。
 
----
+模型生成：
 
-## 4、AI 自动生成 SQL
-
-注册 Tool：
-
-```python
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "query_mysql",
-            ...
-        }
-    }
-]
-```
-
-模型返回：
-
-```json
-{
-    "sql":
-    "SELECT brand,
-     SUM(sales_amount)
-     FROM dws_brand_sales
-     GROUP BY brand"
-}
-```
-
-解析：
-
-```python
-args = json.loads(tool_call.function.arguments)
-
-sql = args["sql"]
-```
-
----
-
-## 5、执行 SQL
-
-Python 调用数据库工具：
-
-```python
-result = execute_query(sql)
-```
-
-打印日志：
-
-```python
-print(sql)
-
-print(result)
-```
-
----
-
-## 6、SQL 异常处理
-
-增加异常捕获：
-
-```python
-try:
-    result = execute_query(sql)
-
-except Exception as e:
-    return f"数据库查询失败：{e}"
-```
-
-避免 SQL 出错导致 FastAPI 返回 500。
-
----
-
-# 六、测试
-
-## 测试一
-
-输入：
-
-```text
-销量最高品牌有哪些？
-```
-
-AI 自动生成：
 
 ```sql
 SELECT
 brand,
-SUM(sales_amount)
+SUM(sales_amount) AS total_sales
 FROM dws_brand_sales
 GROUP BY brand
-ORDER BY sales_amount DESC;
+ORDER BY total_sales DESC
+LIMIT 10;
 ```
 
-返回：
-
-品牌销量排行榜。
 
 ---
 
-## 测试二
+# 4. SQL Validation
+
+
+生成 SQL 后进入：
+
+```
+sql_guard.py
+```
+
+
+检查危险操作。
+
+
+禁止：
+
+
+```
+DELETE
+
+UPDATE
+
+DROP
+
+ALTER
+
+INSERT
+
+CREATE
+
+TRUNCATE
+
+```
+
+
+只允许：
+
+
+```sql
+SELECT
+```
+
+
+保证数据库安全。
+
+
+---
+
+# 5. Execute SQL
+
+
+通过：
+
+```python
+execute_query(sql)
+```
+
+
+调用 MySQL Tool。
+
+
+获取真实业务数据。
+
+
+---
+
+# 6. Result Analysis
+
+
+数据库返回结果：
+
+
+```
+Apple 853000
+
+Huawei 801234
+
+Xiaomi 650000
+
+```
+
+
+发送给 DeepSeek。
+
+
+生成自然语言分析。
+
+
+---
+
+# Development Problems
+
+
+## 问题一：Schema 表名错误
+
+
+错误：
+
+```
+dws_hot_items
+```
+
+
+实际：
+
+```
+dws_item_hot
+```
+
+
+导致：
+
+```
+Table doesn't exist
+```
+
+
+解决：
+
+同步：
+
+```
+schema.txt
+
+数据库真实表结构
+```
+
+
+
+---
+
+## 问题二：模型生成不存在字段
+
+
+原因：
+
+Schema 信息不足。
+
+
+例如：
+
+模型生成：
+
+```sql
+item_sales
+```
+
+
+但数据库不存在。
+
+
+解决：
+
+完善：
+
+- Table
+- Column
+- Description
+
+
+---
+
+## 问题三：SQL 执行异常
+
+
+问题：
+
+SQL 错误导致 FastAPI 返回：
+
+```
+500 Internal Server Error
+```
+
+
+解决：
+
+增加异常处理：
+
+
+```python
+try:
+
+except Exception as e:
+```
+
+
+将错误返回 Agent。
+
+
+---
+
+# Testing
+
+
+## Test 1
+
 
 输入：
 
-```text
+```
+销量最高品牌有哪些？
+```
+
+
+生成：
+
+```sql
+SELECT
+brand,
+sales_amount
+FROM dws_brand_sales
+ORDER BY sales_amount DESC
+LIMIT 10;
+```
+
+
+成功执行。
+
+
+---
+
+## Test 2
+
+
+输入：
+
+```
 销量最高商品类别？
 ```
 
+
 生成：
+
 
 ```sql
 SELECT *
@@ -253,17 +663,21 @@ ORDER BY sales_amount DESC
 LIMIT 1;
 ```
 
-查询成功。
+
+成功执行。
+
 
 ---
 
-## 测试三
+## Test 3
+
 
 输入：
 
-```text
+```
 购买次数最多的用户？
 ```
+
 
 生成：
 
@@ -276,91 +690,211 @@ ORDER BY buy_count DESC
 LIMIT 1;
 ```
 
-返回用户信息。
+
+成功执行。
+
 
 ---
 
-## 测试四
+# Development Summary
 
-输入：
 
-```text
-销量最高商品？
-```
+本 Sprint 完成：
 
-由于 Schema 中表名与数据库实际表名不一致，AI 生成：
 
-```sql
-FROM dws_hot_items
-```
+- [x] 增加数据库 Schema 描述
+- [x] Schema 注入 Prompt
+- [x] 提升 SQL 自动生成准确率
+- [x] 完善 NL2SQL 流程
+- [x] 增加 SQL 异常处理
+- [x] 完成自然语言查询数据库闭环
 
-数据库返回：
-
-```text
-Table doesn't exist
-```
-
-修正 Schema 后恢复正常。
 
 ---
 
-# 七、Sprint06 成果
+# Technical Stack
 
-本 Sprint 完成了 AI Agent 的 NL2SQL 核心能力。
 
-系统已经具备：
+- Python 3.11
+- FastAPI
+- DeepSeek API
+- Prompt Engineering
+- PyMySQL
+- MySQL
 
-- 数据库 Schema 理解
-- AI 自动生成 SQL
-- 动态执行 SQL
-- MySQL 查询
-- AI 根据数据库结果回答
-- SQL 异常处理
-
-实现了自然语言到数据库查询的完整流程。
 
 ---
 
-# 八、存在的问题
+# Key Learning
 
-当前系统仅支持一次 Tool Calling。
 
-当 AI 希望连续查询多张数据表时，程序不会继续执行第二次 Tool Call。
+## 1. NL2SQL
 
-例如：
 
-```text
-查询用户购买记录
+理解：
+
+```
+自然语言
 
 ↓
 
-查询品牌信息
+SQL
 
 ↓
 
-查询商品信息
+数据查询
+
 ```
 
-目前仅执行第一次查询。
-
-下一 Sprint 将升级为 Multi-step Agent，实现多轮 Tool Calling。
 
 ---
 
-# 九、下一步计划（Sprint07）
+## 2. Schema Prompt Engineering
 
-下一 Sprint 将实现：
 
-- Multi-step Agent
-- 多轮 Tool Calling
-- 自动循环调用工具
-- 多表联合分析
-- 更复杂的数据分析能力
+通过数据库结构约束模型输出。
 
-进一步提升 AI Agent 的智能分析能力。
+
+降低：
+
+- 表名错误
+- 字段错误
+- SQL 幻觉
+
 
 ---
 
-# 十、本 Sprint 总结
+## 3. AI 数据分析流程
 
-Sprint06 实现了 AI Agent 的自然语言生成 SQL（NL2SQL）能力，使系统能够理解数据库结构，根据用户问题动态生成 SQL 并完成查询，显著提升了系统的智能化水平，为后续多轮工具调用和复杂数据分析奠定了基础。
+
+理解完整链路：
+
+
+```
+User
+
+↓
+
+LLM
+
+↓
+
+SQL
+
+↓
+
+Database
+
+↓
+
+Result
+
+↓
+
+Analysis
+
+```
+
+
+---
+
+# Problems
+
+
+当前限制：
+
+- Schema 需要人工维护
+- SQL 复杂 JOIN 能力有限
+- 缺少查询历史记录
+- 缺少结果缓存
+
+
+后续继续优化。
+
+
+---
+
+# Next Sprint
+
+
+## Sprint07：RAG Knowledge Enhancement
+
+
+目标：
+
+使用 RAG 增强 Agent 对业务知识和数据库结构的理解。
+
+
+实现：
+
+- Knowledge Markdown
+- Embedding
+- FAISS Search
+- Context Retrieval
+
+
+流程：
+
+
+```
+User
+
+↓
+
+RAG Retrieval
+
+↓
+
+Agent
+
+↓
+
+SQL Generator
+
+↓
+
+MySQL
+
+↓
+
+Answer
+
+```
+
+
+---
+
+# Git Commit
+
+
+```bash
+git add .
+
+git commit -m "feat: enhance nl2sql with schema prompt"
+
+git push
+```
+
+
+---
+
+# Sprint Status
+
+
+✅ Sprint 06 Completed
+
+
+Completed:
+
+```
+Schema Prompt
+
+NL2SQL
+
+SQL Validation
+
+Database Query
+
+AI Analysis
+
+```

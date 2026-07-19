@@ -1,6 +1,9 @@
 import os
+
 import pymysql
 from dotenv import load_dotenv
+
+from security.sql_guard import check_sql
 
 load_dotenv()
 
@@ -16,25 +19,18 @@ def get_connection():
     )
 
 
-def execute_query(sql):
+def execute_query(sql: str):
+    check = check_sql(sql)
+
+    if not check["safe"]:
+        return {"error": check["reason"]}
+
     conn = get_connection()
 
     try:
-        with conn.cursor() as cursor:
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             cursor.execute(sql)
-            result = cursor.fetchall()
-        return result
+            return cursor.fetchall()
 
     finally:
         conn.close()
-
-
-
-if __name__ == "__main__":
-    sql = """
-    SELECT COUNT(*)
-    FROM ods_user_behavior;
-    """
-
-    result = execute_query(sql)
-    print(result)
