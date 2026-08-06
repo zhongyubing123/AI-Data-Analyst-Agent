@@ -9,7 +9,7 @@ with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
     SCHEMA = f.read()
 
 
-def generate_sql(question: str):
+def generate_sql(question: str, context=None):
     prompt = f"""
 你是一名SQL生成助手。
 
@@ -19,10 +19,19 @@ def generate_sql(question: str):
 用户问题：
 {question}
 
-要求：
-- 只返回SQL
-- 只能使用Schema中的表和字段
-- 只能生成SELECT语句
+上下文信息：
+{context}
+
+规则：
+1. 只能使用Schema中的表和字段
+2. 只能生成SELECT语句
+3. 如果上下文中存在实体信息：
+   - entity_type=item 时，
+     商品名称必须使用 item_name 查询
+   - entity_type=brand 时，
+     品牌名称必须使用 brand 查询
+4. 不允许把商品名称当成品牌查询
+5. 只返回SQL，不要解释
 """
 
     response = client.chat.completions.create(

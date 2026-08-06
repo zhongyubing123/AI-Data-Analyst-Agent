@@ -7,7 +7,7 @@ from services.deepseek_service import chat
 from services.vector_search import search
 from services.chart_service import generate_chart
 from tools.mysql_tool import execute_query
-
+from services.memory_service import get_context
 import re
 
 
@@ -73,7 +73,7 @@ def run_agent(message):
     if intent in ("sql", "chart"):
 
 
-        sql = generate_sql(message)
+        sql = generate_sql(message, context=get_context())
 
 
         data = decimal_to_float(
@@ -89,7 +89,7 @@ def run_agent(message):
             sql=sql,
             table=extract_table(sql)
             
-    )
+        )
 
 
 
