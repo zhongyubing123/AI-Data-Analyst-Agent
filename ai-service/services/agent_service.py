@@ -8,7 +8,7 @@ from services.vector_search import search
 from services.chart_service import generate_chart
 from tools.mysql_tool import execute_query
 from services.memory_service import get_context
-import re
+
 
 
 def extract_table(sql):
@@ -63,10 +63,15 @@ def run_agent(message):
 
 
 
-    intent = planner(message).get(
-        "intent",
-        "chat"
-    )
+    planner_result = planner(message)
+
+    print("最终Intent:", planner_result.get("intent"))
+
+
+    intent = planner_result.get(
+         "intent",
+         "chat"
+       )
 
 
 
@@ -74,13 +79,40 @@ def run_agent(message):
 
 
         sql = generate_sql(message, context=get_context())
+        print("生成SQL:", sql)
+        if sql == "NO_AVAILABLE_FIELD":
 
+           return {
+              "answer": chat(
+                  f"""
+用户问题：
+{message}
 
-        data = decimal_to_float(
-            execute_query(sql)
-        )
-        print("SQL结果:", data)
-        print("SQL:", sql)
+当前数据库Schema中不存在相关字段。
+
+请向用户解释：
+1. 当前无法查询该信息
+2. 说明数据库支持哪些分析方向
+3. 不要编造数据
+"""
+        ),
+               "chart": None
+          }
+
+        try:
+
+           data = decimal_to_float(execute_query(sql))
+        except Exception as e:
+            print("SQL执行错误:", e)
+            save_context(
+               intent=intent,
+               sql=sql,
+               table=extract_table(sql)
+    )
+            return {
+              "answer": f"SQL执行失败: {e}",
+              "chart": None
+          }
 
         # 保存上下文
         save_context(   

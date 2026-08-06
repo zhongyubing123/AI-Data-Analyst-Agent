@@ -79,6 +79,10 @@ def planner(message: str):
         )
 
 
+        print("================")
+        print("Planner结果:", result)
+        print("================")
+        
         # 保存Planner上下文
 
         add_message(

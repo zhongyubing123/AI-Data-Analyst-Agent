@@ -1,34 +1,68 @@
 Database: ecommerce
 
+
 Table: dws_brand_sales
+
+Description:
+品牌销售统计表，用于分析品牌销量和销售额。
+
 Columns:
-brand
-sales_amount
-buy_count
+brand: 品牌名称
+sales_amount: 销售金额
+buy_count: 购买数量
+
 
 Table: dws_category_sales
+
+Description:
+商品分类销售统计表，用于分析不同商品分类的销量和销售额。
+
 Columns:
-category
-sales_amount
-buy_count
+category: 商品分类名称
+sales_amount: 销售金额
+buy_count: 购买数量
+
 
 Table: dws_item_hot
+
+Description:
+商品热度统计表，用于分析热门商品。
+
 Columns:
-item_id
-item_name
-pv_count
-fav_count
-buy_count
+item_id: 商品ID
+item_name: 商品名称
+pv_count: 浏览次数
+fav_count: 收藏次数
+buy_count: 购买数量
+
 
 Table: dws_user_active
+
+Description:
+用户活跃统计表，用于分析用户购买活跃情况。
+
 Columns:
-user_id
-buy_count
+user_id: 用户ID
+buy_count: 用户购买次数
 
-Rules:
 
-- Only generate SELECT statements.
-- Only use the tables and columns above.
-- Do not use SELECT *.
-- Use LIMIT for ranking queries.
-- Return SQL only.
+
+Important Rules:
+
+1. Only generate SELECT statements.
+
+2. Only use tables and columns explicitly listed above.
+
+3. Do not guess missing fields.
+
+4. If the user's question requires a field that does not exist in the database:
+   return:
+   NO_AVAILABLE_FIELD
+
+5. Do not generate SQL for unavailable information.
+
+6. Do not use SELECT *.
+
+7. Use LIMIT for ranking queries.
+
+8. Return SQL only.

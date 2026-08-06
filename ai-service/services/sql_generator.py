@@ -48,4 +48,9 @@ def generate_sql(question: str, context=None):
         ]
     )
 
-    return response.choices[0].message.content.strip()
+    sql = response.choices[0].message.content.strip()
+
+    if sql == "NO_AVAILABLE_FIELD":
+          return sql
+
+    return sql
