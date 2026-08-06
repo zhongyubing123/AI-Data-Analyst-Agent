@@ -5,3 +5,5 @@ conda activate ai-agent
 
 依赖：
 pip install fastapi uvicorn openai python-dotenv
+
+uvicorn app:app --reload

@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 
 from services.llm_client import client
-from services.memory import get_history, add_message
+from services.conversation_memory import get_history, add_message
 
 
 
