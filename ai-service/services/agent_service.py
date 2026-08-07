@@ -7,8 +7,12 @@ from services.deepseek_service import chat
 from services.vector_search import search
 from services.chart_service import generate_chart
 from tools.mysql_tool import execute_query
-from services.memory_service import get_context
 
+from services.memory_service import (
+    resolve_context,
+    save_context,
+    get_context
+)
 
 
 def extract_table(sql):
@@ -25,22 +29,16 @@ def extract_table(sql):
     return None
 
 
-from services.memory_service import (
-    resolve_context,
-    save_context
-)
-
-
 
 def decimal_to_float(rows):
 
     for row in rows:
         for k, v in row.items():
+
             if isinstance(v, Decimal):
                 row[k] = float(v)
 
     return rows
-
 
 
 
@@ -65,26 +63,50 @@ def run_agent(message):
 
     planner_result = planner(message)
 
-    print("最终Intent:", planner_result.get("intent"))
+
+    print("================")
+    print("Planner结果:", planner_result)
+    print("================")
 
 
     intent = planner_result.get(
-         "intent",
-         "chat"
-       )
+        "intent",
+        "chat"
+    )
 
 
+    print("最终Intent:", intent)
+
+
+
+    # =========================
+    # SQL / Chart
+    # =========================
 
     if intent in ("sql", "chart"):
 
 
-        sql = generate_sql(message, context=get_context())
+        sql = generate_sql(
+            message,
+            context=get_context()
+        )
+#         sql = sql.replace(
+#     "buy_count",
+#     "sales_amount"
+# )
+
+
         print("生成SQL:", sql)
+
+
+
+        # Schema不存在字段
+
         if sql == "NO_AVAILABLE_FIELD":
 
-           return {
-              "answer": chat(
-                  f"""
+            return {
+                "answer": chat(
+                    f"""
 用户问题：
 {message}
 
@@ -95,40 +117,92 @@ def run_agent(message):
 2. 说明数据库支持哪些分析方向
 3. 不要编造数据
 """
-        ),
-               "chart": None
-          }
+                ),
+                "chart": None
+            }
+
+
+
+        # =========================
+        # SQL执行
+        # =========================
 
         try:
 
-           data = decimal_to_float(execute_query(sql))
+            data = decimal_to_float(
+                execute_query(sql)
+            )
+
+
         except Exception as e:
-            print("SQL执行错误:", e)
-            save_context(
-               intent=intent,
-               sql=sql,
-               table=extract_table(sql)
-    )
-            return {
-              "answer": f"SQL执行失败: {e}",
-              "chart": None
-          }
+
+
+            print("第一次SQL失败:", e)
+
+
+            from services.sql_retry import retry_sql
+
+
+            fixed_sql = retry_sql(
+                message,
+                str(e),
+                get_context()
+            )
+
+
+            print("修复SQL:", fixed_sql)
+
+
+            try:
+
+                data = decimal_to_float(
+                    execute_query(fixed_sql)
+                )
+
+                sql = fixed_sql
+
+
+            except Exception as retry_error:
+
+
+                print(
+                    "SQL修复失败:",
+                    retry_error
+                )
+
+
+                return {
+                    "answer": f"SQL执行失败: {retry_error}",
+                    "chart": None
+                }
+
+
+
+
+        print("SQL结果:", data)
+
 
         # 保存上下文
-        save_context(   
+
+        save_context(
             data=data,
             intent=intent,
             sql=sql,
             table=extract_table(sql)
-            
         )
 
 
 
+        # =========================
+        # 图表
+        # =========================
+
         if intent == "chart":
 
             return {
+
                 "answer": "图表生成完成",
+
                 "chart": generate_chart(
                     data,
                     message
@@ -137,22 +211,38 @@ def run_agent(message):
 
 
 
+
+        # =========================
+        # SQL结果回答
+        # =========================
+
         return {
+
             "answer": chat(
                 f"""
 数据库结果：
+
 {data}
 
+
 用户问题：
+
 {message}
+
 
 根据数据库结果回答，不要编造数据。
 """
             ),
+
             "chart": None
         }
 
 
+
+
+    # =========================
+    # RAG
+    # =========================
 
     if intent == "rag":
 
@@ -163,23 +253,36 @@ def run_agent(message):
 
 
         return {
+
             "answer": chat(
                 f"""
 企业知识：
+
 {context}
 
+
 用户问题：
+
 {message}
+
 
 请根据知识回答。
 """
             ),
+
             "chart": None
         }
 
 
 
+
+    # =========================
+    # 普通聊天
+    # =========================
+
     return {
+
         "answer": chat(message),
+
         "chart": None
     }

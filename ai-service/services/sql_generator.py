@@ -32,6 +32,7 @@ def generate_sql(question: str, context=None):
      品牌名称必须使用 brand 查询
 4. 不允许把商品名称当成品牌查询
 5. 只返回SQL，不要解释
+
 """
 
     response = client.chat.completions.create(
