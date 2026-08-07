@@ -1,0 +1,39 @@
+{
+    "total": 4,
+    "success": 2,
+    "accuracy": 0.5,
+    "results": [
+        {
+            "id": 1,
+            "question": "什么是RAG",
+            "success": true,
+            "keyword": "检索增强生成",
+            "latency": 13.584,
+            "response": "{'answer': '【分析】\\n根据企业知识库，RAG 全称为 Retrieval-Augmented Generation（检索增强生成）。\\n\\n【建议】\\n如需了解 RAG 在业务中的具体应用场景，可进一步查询相关技术文档。', 'chart': None}"
+        },
+        {
+            "id": 2,
+            "question": "FAISS有什么作用",
+            "success": false,
+            "keyword": "向量检索",
+            "latency": 1.627,
+            "response": "{'answer': '【分析】\\n根据企业知识库，FAISS 是 Facebook AI Similarity Search（Facebook 人工智能相似性搜索工具）。\\n\\n【建议】\\n知识库中仅提供了 FAISS 的定义，未包含其具体作用或功能细节。如需了解其详细用途，建议查询相关技术文档或数据库。', 'chart': None}"
+        },
+        {
+            "id": 3,
+            "question": "项目使用什么技术",
+            "success": false,
+            "keyword": "FastAPI",
+            "latency": 1.571,
+            "response": "{'answer': '【分析】\\n根据当前知识库内容，未包含关于项目技术架构或所用技术的相关信息。\\n\\n【建议】\\n如需了解项目使用的具体技术栈，请提供相关技术文档或查询数据库。', 'chart': None}"
+        },
+        {
+            "id": 4,
+            "question": "buy_count是什么意思",
+            "success": true,
+            "keyword": "购买次数",
+            "latency": 2.647,
+            "response": "{'answer': '【分析】\\n根据企业知识库，目前没有关于“buy_count”字段的定义或解释。知识库中仅包含“收藏”、“GMV”和“客单价”等指标的定义。\\n\\n【建议】\\n“buy_count”可能是一个数据库字段名，通常可能指“购买次数”或“购买数量”。但为了确保准确性，建议查询数据库表结构或相关数据字典以确认其具体含义。', 'chart': None}"
+        }
+    ]
+}

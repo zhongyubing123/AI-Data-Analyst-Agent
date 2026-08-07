@@ -1,0 +1,22 @@
+[
+    {
+        "id":1,
+        "question":"什么是RAG",
+        "expected_keyword":"检索增强生成"
+    },
+    {
+        "id":2,
+        "question":"FAISS有什么作用",
+        "expected_keyword":"向量检索"
+    },
+    {
+        "id":3,
+        "question":"项目使用什么技术",
+        "expected_keyword":"FastAPI"
+    },
+    {
+        "id":4,
+        "question":"buy_count是什么意思",
+        "expected_keyword":"购买次数"
+    }
+]

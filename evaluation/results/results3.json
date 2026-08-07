@@ -1,0 +1,56 @@
+{
+    "mode": "fast",
+    "total": 6,
+    "success": 6,
+    "accuracy": 1.0,
+    "results": [
+        {
+            "id": 1,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 1.644,
+            "response": "{'sql': 'SELECT item_name, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 1;'}"
+        },
+        {
+            "id": 2,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 0.851,
+            "response": "{'sql': 'SELECT item_name, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 5;'}"
+        },
+        {
+            "id": 3,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 0.708,
+            "response": "{'sql': '```sql\\nSELECT brand, sales_amount FROM dws_brand_sales ORDER BY sales_amount DESC LIMIT 1;\\n```'}"
+        },
+        {
+            "id": 4,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 1.08,
+            "response": "{'sql': 'SELECT brand, sales_amount FROM dws_brand_sales ORDER BY sales_amount DESC LIMIT 1;'}"
+        },
+        {
+            "id": 5,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 0.803,
+            "response": "{'sql': 'SELECT user_id, buy_count FROM dws_user_active;'}"
+        },
+        {
+            "id": 6,
+            "type": "sql",
+            "mode": "fast",
+            "success": true,
+            "latency": 0.681,
+            "response": "{'sql': 'SELECT item_id, item_name, pv_count, fav_count, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 100;'}"
+        }
+    ]
+}

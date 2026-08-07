@@ -1,10 +1,6 @@
-
-
-
 conversation_history = []
 
 MAX_HISTORY = 10
-
 
 
 def add_message(role, content):
@@ -20,7 +16,6 @@ def add_message(role, content):
     if len(conversation_history) > MAX_HISTORY:
 
         del conversation_history[:-MAX_HISTORY]
-
 
 
 

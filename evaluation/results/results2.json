@@ -1,0 +1,168 @@
+{
+    "mode": "fast",
+    "total": 20,
+    "success": 2,
+    "accuracy": 0.1,
+    "results": [
+        {
+            "id": 1,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 154.873,
+            "response": "{'sql': 'SELECT item_name, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 1;'}"
+        },
+        {
+            "id": 2,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.977,
+            "response": "{'sql': 'SELECT item_id, item_name, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 5;'}"
+        },
+        {
+            "id": 3,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.749,
+            "response": "{'sql': 'SELECT brand, buy_count FROM dws_brand_sales ORDER BY buy_count DESC LIMIT 1;'}"
+        },
+        {
+            "id": 4,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.982,
+            "response": "{'sql': 'SELECT brand, sales_amount FROM dws_brand_sales ORDER BY sales_amount DESC LIMIT 1;'}"
+        },
+        {
+            "id": 5,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.709,
+            "response": "{'sql': 'SELECT user_id, buy_count FROM dws_user_active;'}"
+        },
+        {
+            "id": 6,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 1.208,
+            "response": "{'sql': 'SELECT item_id, item_name, pv_count, fav_count, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 10;'}"
+        },
+        {
+            "id": 7,
+            "type": "rag",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'rag': 'skip'}"
+        },
+        {
+            "id": 8,
+            "type": "rag",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'rag': 'skip'}"
+        },
+        {
+            "id": 9,
+            "type": "rag",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'rag': 'skip'}"
+        },
+        {
+            "id": 10,
+            "type": "rag",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'rag': 'skip'}"
+        },
+        {
+            "id": 11,
+            "type": "chat",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'answer': 'skip'}"
+        },
+        {
+            "id": 12,
+            "type": "chat",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{'answer': 'skip'}"
+        },
+        {
+            "id": 13,
+            "type": "memory",
+            "mode": "fast",
+            "success": true,
+            "latency": 9.068,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，**雅诗兰黛红石榴面霜 50ml** 的销量为 **1876 件**。\\n\\n【建议】\\n该商品销量表现突出，建议持续关注其库存与补货情况，并可作为重点推荐商品。', 'chart': None}"
+        },
+        {
+            "id": 14,
+            "type": "sql_retry",
+            "mode": "fast",
+            "success": false,
+            "latency": 1.068,
+            "response": "{'sql': 'SELECT item_name, buy_count FROM dws_item_hot ORDER BY buy_count DESC LIMIT 1;'}"
+        },
+        {
+            "id": 15,
+            "type": "security",
+            "mode": "fast",
+            "success": false,
+            "latency": 0.0,
+            "response": "{}"
+        },
+        {
+            "id": 16,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 1.166,
+            "response": "{'sql': 'NO_AVAILABLE_FIELD'}"
+        },
+        {
+            "id": 17,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 1.048,
+            "response": "{'sql': 'SELECT category, buy_count, sales_amount FROM dws_category_sales ORDER BY buy_count DESC LIMIT 20;'}"
+        },
+        {
+            "id": 18,
+            "type": "sql",
+            "mode": "fast",
+            "success": false,
+            "latency": 1.147,
+            "response": "{'sql': 'SELECT user_id, buy_count FROM dws_user_active;'}"
+        },
+        {
+            "id": 19,
+            "type": "chart",
+            "mode": "fast",
+            "success": false,
+            "latency": 4.534,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，各品牌销量排行如下（按销量降序）：\\n\\n1. **GAP**：5382 件\\n2. **优衣库**：5269 件\\n3. **资生堂**：3664 件\\n4. **小米**：3597 件\\n5. **VIVO**：3557 件\\n6. **欧莱雅**：3543 件\\n7. **美的**：3512 件\\n8. **雅诗兰黛**：1876 件\\n9. **阿迪达斯**：1869 件\\n10. **H&M**：1865 件\\n\\n【建议】\\nGAP 和优衣库销量领先，可重点关注其热销品类并加强备货；对于销量相对较低的品牌（如 H&M、阿迪达斯），可分析原因并制定针对性促销策略。', 'chart': None}"
+        },
+        {
+            "id": 20,
+            "type": "chart",
+            "mode": "fast",
+            "success": true,
+            "latency": 3.679,
+            "response": "{'answer': '图表生成完成', 'chart': {'title': {'text': '商品销量趋势图', 'left': 'center'}, 'xAxis': {'type': 'category', 'data': ['商品']}, 'yAxis': {'type': 'value', 'name': '销量'}, 'series': [{'type': 'bar', 'data': [5382], 'label': {'show': True, 'position': 'top'}}]}}"
+        }
+    ]
+}

@@ -4,13 +4,11 @@ from services.llm_client import client
 from services.conversation_memory import get_history, add_message
 
 
-
 PROMPT_PATH = (
     Path(__file__).parent.parent
     / "prompts"
     / "system_prompt.txt"
 )
-
 
 
 with open(
@@ -19,25 +17,24 @@ with open(
     encoding="utf-8"
 ) as f:
 
-    SYSTEM_PROMPT=f.read()
+    SYSTEM_PROMPT = f.read()
 
 
 
+def chat(message: str):
 
-def chat(message:str):
 
-
-    messages=[
+    messages = [
 
         {
-            "role":"system",
-            "content":SYSTEM_PROMPT
+            "role": "system",
+            "content": SYSTEM_PROMPT
         }
 
     ]
 
 
-    # 添加历史
+    # 添加历史上下文
 
     messages.extend(
         get_history()
@@ -46,14 +43,14 @@ def chat(message:str):
 
     messages.append(
         {
-            "role":"user",
-            "content":message
+            "role": "user",
+            "content": message
         }
     )
 
 
 
-    response=client.chat.completions.create(
+    response = client.chat.completions.create(
 
         model="deepseek-chat",
 
@@ -64,7 +61,32 @@ def chat(message:str):
     )
 
 
-    answer=response.choices[0].message.content
+
+    answer = (
+        response
+        .choices[0]
+        .message
+        .content
+    )
+
+
+
+    # ======================
+    # Token统计
+    # ======================
+
+    usage = {
+
+        "prompt_tokens":
+            response.usage.prompt_tokens,
+
+        "completion_tokens":
+            response.usage.completion_tokens,
+
+        "total_tokens":
+            response.usage.total_tokens
+
+    }
 
 
 
@@ -82,4 +104,11 @@ def chat(message:str):
     )
 
 
-    return answer
+
+    return {
+
+        "content": answer,
+
+        "usage": usage
+
+    }

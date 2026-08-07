@@ -3,7 +3,7 @@ import os
 import pymysql
 from dotenv import load_dotenv
 
-from security.sql_guard import check_sql
+from services.sql_guard import check_sql
 
 load_dotenv()
 

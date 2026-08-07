@@ -1,12 +1,12 @@
-from pathlib import Path
 import json
+import logging
+from pathlib import Path
 
 from services.llm_client import client
-from services.conversation_memory import get_history, add_message
 
 
+logger = logging.getLogger(__name__)
 
-# 加载 Prompt
 
 PROMPT_PATH = (
     Path(__file__).parent.parent
@@ -15,45 +15,16 @@ PROMPT_PATH = (
 )
 
 
-with open(
-    PROMPT_PATH,
-    "r",
-    encoding="utf-8"
-) as f:
-
-    PLANNER_PROMPT = f.read()
-
-
-
-def planner(message: str):
-
-
-    messages = [
-
-        {
-            "role":"system",
-            "content":PLANNER_PROMPT
-        }
-
-    ]
-
-
-    # 加入历史上下文
-
-    messages.extend(
-        get_history()
+PLANNER_PROMPT = (
+    PROMPT_PATH
+    .read_text(
+        encoding="utf-8"
     )
+)
 
 
-    # 当前问题
 
-    messages.append(
-        {
-            "role":"user",
-            "content":message
-        }
-    )
-
+def planner(message: str) -> dict:
 
 
     response = client.chat.completions.create(
@@ -66,37 +37,39 @@ def planner(message: str):
             "type":"json_object"
         },
 
-        messages=messages
+        messages=[
 
+            {
+                "role":"system",
+                "content":PLANNER_PROMPT
+            },
+
+            {
+                "role":"user",
+                "content":message
+            }
+
+        ]
+
+    )
+
+
+    content = (
+        response
+        .choices[0]
+        .message
+        .content
     )
 
 
     try:
 
-
-        result=json.loads(
-            response.choices[0].message.content
-        )
+        result = json.loads(content)
 
 
-        print("================")
-        print("Planner结果:", result)
-        print("================")
-        
-        # 保存Planner上下文
-
-        add_message(
-            "user",
-            message
-        )
-
-
-        add_message(
-            "assistant",
-            json.dumps(
-                result,
-                ensure_ascii=False
-            )
+        logger.info(
+            "Planner result=%s",
+            result
         )
 
 
@@ -104,15 +77,20 @@ def planner(message: str):
 
 
 
-    except Exception:
+    except json.JSONDecodeError:
+
+
+        logger.error(
+            "Planner JSON error:%s",
+            content
+        )
 
 
         return {
 
             "intent":"chat",
 
-            "table":"",
-
-            "reason":"Planner解析失败"
+            "reason":
+            "Planner解析失败"
 
         }

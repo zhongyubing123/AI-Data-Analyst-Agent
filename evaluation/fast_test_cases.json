@@ -1,0 +1,248 @@
+[
+    {
+        "id":1,
+        "type":"sql",
+        "question":"销量最高的商品",
+        "expected":{
+            "table":"dws_item_hot",
+            "keywords":[
+                "SELECT",
+                "buy_count"
+            ]
+        }
+    },
+
+
+    {
+        "id":2,
+        "type":"sql",
+        "question":"查询销量前五的商品",
+        "expected":{
+            "table":"dws_item_hot",
+            "keywords":[
+                "LIMIT 5"
+            ]
+        }
+    },
+
+
+    {
+        "id":3,
+        "type":"sql",
+        "question":"哪个品牌销量最高",
+        "expected":{
+            "table":"dws_brand_sales",
+            "keywords":[
+                "brand"
+            ]
+        }
+    },
+
+
+    {
+        "id":4,
+        "type":"sql",
+        "question":"查询销售额最高的品牌",
+        "expected":{
+            "table":"dws_brand_sales",
+            "keywords":[
+                "sales_amount"
+            ]
+        }
+    },
+
+
+    {
+        "id":5,
+        "type":"sql",
+        "question":"查看用户活跃情况",
+        "expected":{
+            "table":"dws_user_active",
+            "keywords":[
+                "user_id"
+            ]
+        }
+    },
+
+
+    {
+        "id":6,
+        "type":"sql",
+        "question":"查询热门商品排行",
+        "expected":{
+            "table":"dws_item_hot",
+            "keywords":[
+                "item_name"
+            ]
+        }
+    },
+
+{
+"id":7,
+"type":"sql",
+"question":"销量最低的商品",
+"expected":{
+"table":"dws_item_hot",
+"keywords":[
+"ORDER BY",
+"ASC",
+"buy_count"
+]
+}
+},
+
+{
+"id":8,
+"type":"sql",
+"question":"查询销量前三的商品",
+"expected":{
+"table":"dws_item_hot",
+"keywords":[
+"LIMIT 3"
+]
+}
+},
+
+{
+"id":9,
+"type":"sql",
+"question":"查看商品浏览量排行",
+"expected":{
+"table":"dws_item_hot",
+"keywords":[
+"pv_count"
+]
+}
+},
+
+{
+"id":10,
+"type":"sql",
+"question":"查看收藏最多的商品",
+"expected":{
+"table":"dws_item_hot",
+"keywords":[
+"fav_count"
+]
+}
+},
+
+{
+"id":11,
+"type":"sql",
+"question":"销售额最高的品牌排行",
+"expected":{
+"table":"dws_brand_sales",
+"keywords":[
+"sales_amount"
+]
+}
+},
+
+{
+"id":12,
+"type":"sql",
+"question":"查询品牌销量排名前五",
+"expected":{
+"table":"dws_brand_sales",
+"keywords":[
+"brand",
+"LIMIT 5"
+]
+}
+},
+
+{
+"id":13,
+"type":"sql",
+"question":"查看类别销售额排行",
+"expected":{
+"table":"dws_category_sales",
+"keywords":[
+"sales_amount"
+]
+}
+},
+
+{
+"id":14,
+"type":"sql",
+"question":"查询销量最高的类别",
+"expected":{
+"table":"dws_category_sales",
+"keywords":[
+"category",
+"buy_count"
+]
+}
+},
+
+{
+"id":15,
+"type":"sql",
+"question":"活跃用户数量统计",
+"expected":{
+"table":"dws_user_active",
+"keywords":[
+"user_id"
+]
+}
+},
+
+{
+"id":16,
+"type":"sql",
+"question":"购买次数最多的用户",
+"expected":{
+"table":"dws_user_active",
+"keywords":[
+"buy_count"
+]
+}
+},
+{
+"id":17,
+"type":"sql",
+"question":"查询商品销售金额排行",
+"expected":{
+    "table":"dws_item_hot",
+    "keywords":[
+        "NO_AVAILABLE_FIELD"
+    ]
+}
+},
+{
+"id":18,
+"type":"sql",
+"question":"查询热门品牌",
+"expected":{
+    "table":"dws_brand_sales",
+    "keywords":[
+        "brand",
+        "buy_count"
+    ]
+}
+},{
+"id":19,
+"type":"sql",
+"question":"查询商品销量和浏览量",
+"expected":{
+    "table":"dws_item_hot",
+    "keywords":[
+        "buy_count",
+        "pv_count"
+    ]
+}
+},{
+"id":20,
+"type":"sql",
+"question":"查询最高购买次数商品",
+"expected":{
+    "table":"dws_item_hot",
+    "keywords":[
+        "buy_count",
+        "LIMIT 1"
+    ]
+}
+}
+]

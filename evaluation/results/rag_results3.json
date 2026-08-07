@@ -1,0 +1,39 @@
+{
+    "total": 4,
+    "success": 4,
+    "accuracy": 1.0,
+    "results": [
+        {
+            "id": 1,
+            "question": "什么是RAG",
+            "success": true,
+            "keyword": "检索增强生成",
+            "latency": 13.699,
+            "response": "{'answer': '【分析】\\nRAG全称 Retrieval-Augmented Generation，中文名称为“检索增强生成”。\\n\\n其核心流程如下：\\n1. 文档切片\\n2. 文本向量化\\n3. 保存到向量数据库\\n4. 用户问题向量化\\n5. 相似度检索\\n6. 将检索结果提供给大语言模型生成回答\\n\\n在本项目中，使用 FAISS 作为向量检索工具，用于保存文本向量并进行相似度搜索；使用 Sentence Transformers 进行文本 Embedding。\\n\\n【建议】\\nRAG 技术主要用于增强大语言模型的知识覆盖能力，适合用于本项目中的知识库问答场景，可有效提升回答的准确性和针对性。', 'chart': None}"
+        },
+        {
+            "id": 2,
+            "question": "FAISS有什么作用",
+            "success": true,
+            "keyword": "向量检索",
+            "latency": 2.727,
+            "response": "{'answer': '【分析】\\n根据知识库内容，FAISS（Facebook AI Similarity Search）在本项目中作为向量检索工具，主要作用如下：\\n1. **保存文本向量**：用于存储文档切片后生成的文本向量数据。\\n2. **进行相似度搜索**：在用户提问时，对用户问题向量与库中向量进行相似度匹配。\\n3. **快速找到相关知识片段**：通过高效的相似度检索，快速定位并返回最相关的知识片段，供大语言模型生成回答。\\n\\n【建议】\\nFAISS 是 RAG 流程中的核心组件，能够显著提升知识检索的速度和准确性，适用于本项目中的知识库问答场景。', 'chart': None}"
+        },
+        {
+            "id": 3,
+            "question": "项目使用什么技术",
+            "success": true,
+            "keyword": "FastAPI",
+            "latency": 2.326,
+            "response": "{'answer': '【分析】\\n根据知识库内容，本项目（AI 数据分析 Agent）使用的技术栈如下：\\n\\n- **后端开发**：Python、FastAPI\\n- **大模型服务**：DeepSeek API\\n- **数据存储**：MySQL\\n- **向量检索**：FAISS\\n- **文本向量化**：Sentence Transformers\\n- **前端展示**：Vue3、ECharts\\n\\n【建议】\\n该项目采用前后端分离架构，后端基于 FastAPI 提供接口服务，结合 DeepSeek API 实现自然语言处理与 SQL 生成，并通过 FAISS 支撑 RAG 知识库问答，前端使用 Vue3 和 ECharts 进行数据可视化展示。', 'chart': None}"
+        },
+        {
+            "id": 4,
+            "question": "buy_count是什么意思",
+            "success": true,
+            "keyword": "购买次数",
+            "latency": 2.019,
+            "response": "{'answer': '【分析】\\n根据知识库内容，`buy_count` 表示**商品购买次数**，用于统计商品销量。\\n\\n【建议】\\n在数据分析中，`buy_count` 可作为衡量商品销售热度的重要指标，常与 `pv_count`（浏览次数）、`fav_count`（收藏次数）结合分析，以评估商品转化效果。', 'chart': None}"
+        }
+    ]
+}

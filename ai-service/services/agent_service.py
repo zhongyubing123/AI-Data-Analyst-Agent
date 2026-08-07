@@ -1,288 +1,185 @@
-import re
-from decimal import Decimal
+import time
 
+from services.trace_service import Trace
 from services.planner_service import planner
-from services.sql_generator import generate_sql
-from services.deepseek_service import chat
-from services.vector_search import search
+from services.memory_service import resolve_context
+
+from services.sql_service import run_sql
+from services.rag_service import run_rag
+
+from services.response_service import generate_answer
 from services.chart_service import generate_chart
-from tools.mysql_tool import execute_query
-
-from services.memory_service import (
-    resolve_context,
-    save_context,
-    get_context
-)
-
-
-def extract_table(sql):
-
-    match = re.search(
-        r"from\s+(\w+)",
-        sql,
-        re.I
-    )
-
-    if match:
-        return match.group(1)
-
-    return None
-
-
-
-def decimal_to_float(rows):
-
-    for row in rows:
-        for k, v in row.items():
-
-            if isinstance(v, Decimal):
-                row[k] = float(v)
-
-    return rows
 
 
 
 def run_agent(message):
 
 
-    # =========================
-    # 上下文解析
-    # =========================
+    start = time.time()
 
-    original_message = message
-
-    message = resolve_context(message)
-
-
-    print("================")
-    print("用户:", original_message)
-    print("解析:", message)
-    print("================")
+    trace = Trace()
 
 
 
-    planner_result = planner(message)
+    try:
 
 
-    print("================")
-    print("Planner结果:", planner_result)
-    print("================")
-
-
-    intent = planner_result.get(
-        "intent",
-        "chat"
-    )
-
-
-    print("最终Intent:", intent)
-
-
-
-    # =========================
-    # SQL / Chart
-    # =========================
-
-    if intent in ("sql", "chart"):
-
-
-        sql = generate_sql(
-            message,
-            context=get_context()
+        trace.start_step(
+            "context"
         )
-#         sql = sql.replace(
-#     "buy_count",
-#     "sales_amount"
-# )
 
 
-        print("生成SQL:", sql)
+        message = resolve_context(
+            message
+        )
 
 
-
-        # Schema不存在字段
-
-        if sql == "NO_AVAILABLE_FIELD":
-
-            return {
-                "answer": chat(
-                    f"""
-用户问题：
-{message}
-
-当前数据库Schema中不存在相关字段。
-
-请向用户解释：
-1. 当前无法查询该信息
-2. 说明数据库支持哪些分析方向
-3. 不要编造数据
-"""
-                ),
-                "chart": None
-            }
+        trace.end_step(
+            "context"
+        )
 
 
 
-        # =========================
-        # SQL执行
-        # =========================
-
-        try:
-
-            data = decimal_to_float(
-                execute_query(sql)
-            )
+        trace.start_step(
+            "planner"
+        )
 
 
-        except Exception as e:
+        planner_result = planner(
+            message
+        )
 
 
-            print("第一次SQL失败:", e)
+        trace.end_step(
+            "planner"
+        )
 
 
-            from services.sql_retry import retry_sql
+
+        intent = planner_result.get(
+            "intent",
+            "chat"
+        )
 
 
-            fixed_sql = retry_sql(
+
+        trace.add(
+            "intent",
+            intent
+        )
+
+
+
+        if intent in [
+            "sql",
+            "chart"
+        ]:
+
+
+            result = run_sql(
                 message,
-                str(e),
-                get_context()
+                intent
             )
 
 
-            print("修复SQL:", fixed_sql)
-
-
-            try:
-
-                data = decimal_to_float(
-                    execute_query(fixed_sql)
-                )
-
-                sql = fixed_sql
-
-
-            except Exception as retry_error:
-
-
-                print(
-                    "SQL修复失败:",
-                    retry_error
-                )
-
+            if "error" in result:
 
                 return {
-                    "answer": f"SQL执行失败: {retry_error}",
-                    "chart": None
+
+                    "answer":
+                    result["error"],
+
+                    "chart":None
+
                 }
 
 
 
-
-        print("SQL结果:", data)
-
-
-        # 保存上下文
-
-        save_context(
-            data=data,
-            intent=intent,
-            sql=sql,
-            table=extract_table(sql)
-        )
+            data = result["data"]
 
 
 
-        # =========================
-        # 图表
-        # =========================
+            if intent == "chart":
 
-        if intent == "chart":
+
+                return {
+
+                    "answer":
+                    "图表生成完成",
+
+                    "chart":
+                    generate_chart(
+                        data,
+                        message
+                    )
+
+                }
+
+
 
             return {
 
-                "answer": "图表生成完成",
-
-                "chart": generate_chart(
+                "answer":
+                generate_answer(
                     data,
                     message
-                )
+                ),
+
+                "chart":None
+
             }
 
 
 
 
-        # =========================
-        # SQL结果回答
-        # =========================
+        if intent == "rag":
+
+
+            return {
+
+                "answer":
+                run_rag(message),
+
+                "chart":None
+
+            }
+
+
+
 
         return {
 
-            "answer": chat(
-                f"""
-数据库结果：
-
-{data}
-
-
-用户问题：
-
-{message}
-
-
-根据数据库结果回答，不要编造数据。
-"""
+            "answer":
+            generate_answer(
+                None,
+                message
             ),
 
-            "chart": None
+            "chart":None
+
         }
 
 
 
-
-    # =========================
-    # RAG
-    # =========================
-
-    if intent == "rag":
+    except Exception as e:
 
 
-        context = "\n".join(
-            search(message)
+        trace.add_error(e)
+
+        raise e
+
+
+
+    finally:
+
+
+        trace.add(
+            "latency",
+            round(
+                time.time()-start,
+                3
+            )
         )
 
 
-        return {
-
-            "answer": chat(
-                f"""
-企业知识：
-
-{context}
-
-
-用户问题：
-
-{message}
-
-
-请根据知识回答。
-"""
-            ),
-
-            "chart": None
-        }
-
-
-
-
-    # =========================
-    # 普通聊天
-    # =========================
-
-    return {
-
-        "answer": chat(message),
-
-        "chart": None
-    }
+        trace.save()

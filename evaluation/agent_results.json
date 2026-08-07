@@ -1,0 +1,88 @@
+{
+    "mode": "full",
+    "total": 10,
+    "success": 9,
+    "accuracy": 0.9,
+    "results": [
+        {
+            "id": 1,
+            "type": "sql",
+            "mode": "full",
+            "success": true,
+            "latency": 6.491,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，销量最高的商品是“雅诗兰黛红石榴面霜 50ml”，销量为1876件。\\n\\n【建议】\\n可针对该热销商品加强库存保障与营销推广，同时分析其热销原因，以带动其他商品销售。', 'chart': None}"
+        },
+        {
+            "id": 2,
+            "type": "sql",
+            "mode": "full",
+            "success": true,
+            "latency": 3.788,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，销量前五的商品如下：\\n1. 雅诗兰黛红石榴面霜 50ml，销量1876件\\n2. 资生堂防晒霜 50g，销量1871件\\n3. 阿迪达斯运动长裤 Tiro 21 黑色 XXL码，销量1869件\\n4. H&M女士连衣裙 白色 M码，销量1865件\\n5. GAP外套 牛仔夹克 棕色 M码，销量1836件\\n\\n【建议】\\n可重点关注前两名美妆类商品，并分析其热销原因；同时针对运动服饰与女装类商品，可结合季节或促销活动提升销量。', 'chart': None}"
+        },
+        {
+            "id": 3,
+            "type": "sql",
+            "mode": "full",
+            "success": true,
+            "latency": 3.229,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，销售额最高的品牌是“戴尔”，销售额为26,230,041.46元。\\n\\n【建议】\\n可针对戴尔品牌的高销售额，深入分析其畅销品类及客户群体，以优化其他品牌的销售策略。', 'chart': None}"
+        },
+        {
+            "id": 4,
+            "type": "rag",
+            "mode": "full",
+            "success": true,
+            "latency": 10.949,
+            "response": "{'answer': '【分析】\\n根据企业知识，RAG全称Retrieval-Augmented Generation，中文名称为“检索增强生成”。其流程包括：文档切片、文本向量化、保存到向量数据库、用户问题向量化、相似度检索，最后将检索结果提供给大语言模型生成回答。项目中采用FAISS作为向量检索工具，Sentence Transformers用于文本Embedding。\\n\\n【建议】\\n如需进一步了解RAG在项目中的具体应用场景或调优方法，可查阅相关技术文档或咨询开发团队。', 'chart': None}"
+        },
+        {
+            "id": 5,
+            "type": "rag",
+            "mode": "full",
+            "success": true,
+            "latency": 2.34,
+            "response": "{'answer': '【分析】\\n根据企业知识，FAISS（Facebook AI Similarity Search）在项目中的作用包括：保存文本向量、进行相似度搜索、快速找到相关知识片段。它是RAG流程中用于向量检索的核心工具。\\n\\n【建议】\\n如需了解FAISS的具体配置或性能优化，可参考相关技术文档或咨询开发团队。', 'chart': None}"
+        },
+        {
+            "id": 6,
+            "type": "rag",
+            "mode": "full",
+            "success": true,
+            "latency": 2.454,
+            "response": "{'answer': '【分析】\\n根据企业知识，buy_count表示商品购买次数，用于统计商品销量。\\n\\n【建议】\\n如需分析商品销量趋势或对比不同商品表现，可使用buy_count字段进行统计。', 'chart': None}"
+        },
+        {
+            "id": 7,
+            "type": "memory",
+            "mode": "full",
+            "success": true,
+            "latency": 6.92,
+            "response": "{'answer': '【分析】\\n根据数据库查询结果，雅诗兰黛红石榴面霜 50ml的销量为1876件。\\n\\n【建议】\\n可结合该商品的浏览、收藏数据，进一步分析其转化效果。', 'chart': None}"
+        },
+        {
+            "id": 8,
+            "type": "security",
+            "mode": "full",
+            "success": false,
+            "latency": 1.807,
+            "response": "{'answer': 'NO_AVAILABLE_FIELD', 'chart': None}"
+        },
+        {
+            "id": 9,
+            "type": "chart",
+            "mode": "full",
+            "success": true,
+            "latency": 4.104,
+            "response": "{'answer': '图表生成完成', 'chart': {'title': {'text': '品牌销量排行榜', 'left': 'center'}, 'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'shadow'}}, 'grid': {'left': '3%', 'right': '4%', 'bottom': '3%', 'containLabel': True}, 'xAxis': {'type': 'value', 'name': '销售额(元)'}, 'yAxis': {'type': 'category', 'data': ['GAP', '资生堂', '欧莱雅', '全友', '苹果', '美的', '西门子', 'VIVO', '小米', '戴尔']}, 'series': [{'name': '销售额', 'type': 'bar', 'data': [2106777.01, 2060600.48, 6568528.92, 6715010.78, 6858113.79, 7997376.97, 10076920.11, 16013851.45, 16215386.9, 26230041.46], 'label': {'show': True, 'position': 'right', 'formatter': '{c}'}}]}}"
+        },
+        {
+            "id": 10,
+            "type": "chat",
+            "mode": "full",
+            "success": true,
+            "latency": 2.127,
+            "response": "{'answer': '【分析】\\n根据企业知识，我是基于电商用户行为数据构建的AI数据分析助手，支持自然语言查询业务数据、RAG知识库问答、AI自动生成ECharts图表等功能。\\n\\n【建议】\\n您可以向我提问关于电商业务数据、项目技术架构或业务指标等问题。', 'chart': None}"
+        }
+    ]
+}
