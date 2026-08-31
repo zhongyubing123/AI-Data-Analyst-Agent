@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2 style="color:white">测试大屏</h2>
+    <h2 style="color:white">电商可视化大屏</h2>
     <BrandChart />
     <UserChart />
     <CategoryChart />
