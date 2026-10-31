@@ -1,3 +1,5 @@
+> 状态：未采用。原计划用大模型原生 Function Calling，实际实现为自定义 Tool 调用流程，见 services/router.py 与 services/sql_service.py。
+
 # Sprint 04：Function Calling
 # Sprint Goal
 

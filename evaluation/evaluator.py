@@ -14,7 +14,11 @@ import time
 # full:
 #   完整Agent测试
 
-MODE = "full"
+MODE = os.getenv("MODE", "full")
+
+
+# 指定用例文件，不指定就按 MODE 走默认的两份
+CASES = os.getenv("CASES", "")
 
 
 
@@ -44,7 +48,14 @@ from services.sql_generator import generate_sql
 
 
 
-if MODE=="fast":
+if CASES:
+
+    TEST_FILE=os.path.join(
+        os.path.dirname(__file__),
+        CASES
+    )
+
+elif MODE=="fast":
 
     TEST_FILE=os.path.join(
         os.path.dirname(__file__),
@@ -59,9 +70,20 @@ else:
     )
 
 
-RESULT_FILE = os.path.join(
+RESULTS_DIR = os.path.join(
     os.path.dirname(__file__),
-    "agent_results.json"
+    "results"
+)
+
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
+CASE_STEM = os.path.splitext(
+    os.path.basename(TEST_FILE)
+)[0]
+
+RESULT_FILE = os.path.join(
+    RESULTS_DIR,
+    f"{MODE}_{CASE_STEM}_results.json"
 )
 
 
@@ -84,112 +106,13 @@ def load_test_cases():
 
 def fast_evaluate(case):
 
-    """
-    低成本Evaluation
+    """fast 模式只验证语句生成，其他类型跳过。"""
 
-    不经过完整Agent
-    """
+    if case["type"] not in ("sql", "sql_retry"):
 
-    question = case.get(
-        "question"
-    )
+        return {"answer": "skip"}
 
-
-    result = {}
-
-
-
-    # SQL测试
-
-    if case["type"] == "sql":
-
-
-        sql = generate_sql(
-            question
-        )
-
-
-        result = {
-
-            "sql":sql
-
-        }
-
-
-
-    # SQL Retry
-    elif case["type"] == "sql_retry":
-
-
-        sql = generate_sql(
-            question
-        )
-
-
-        result = {
-
-            "sql":sql
-
-        }
-
-
-
-    # Chat无需测试LLM
-    elif case["type"] == "chat":
-
-
-        result = {
-
-            "answer":
-                "skip"
-
-        }
-
-
-    # Memory暂时full测试
-    elif case["type"] == "memory":
-
-
-        response = run_agent(
-            case["conversation"][0]
-        )
-
-
-        response = run_agent(
-            case["conversation"][1]
-        )
-
-
-        result = response
-
-
-
-    # RAG暂时跳过
-    elif case["type"] == "rag":
-
-
-        result = {
-
-            "rag":
-                "skip"
-
-        }
-
-
-
-    # Chart暂时full
-
-    elif case["type"] == "chart":
-
-
-        result = run_agent(
-            question
-        )
-
-
-
-    return result
-
+    return {"sql": generate_sql(case.get("question"))}
 
 
 
@@ -223,12 +146,14 @@ def check_expected(case,response):
 
 
 
+    # 表名断言只对 fast 模式有意义：那个模式响应就是 SQL 文本。
+    # full 模式返回自然语言，不会出现表名。
     table=expected.get(
         "table"
     )
 
 
-    if table:
+    if table and MODE == "fast":
 
         if table not in text:
 

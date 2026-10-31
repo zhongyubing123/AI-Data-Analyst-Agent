@@ -11,7 +11,7 @@ load_dotenv()
 def get_connection():
     return pymysql.connect(
         host=os.getenv("MYSQL_HOST"),
-        port=int(os.getenv("MYSQL_PORT")),
+        port=int(os.getenv("MYSQL_PORT", 3306)),
         user=os.getenv("MYSQL_USER"),
         password=os.getenv("MYSQL_PASSWORD"),
         database=os.getenv("MYSQL_DATABASE"),
@@ -23,7 +23,7 @@ def execute_query(sql: str):
     check = check_sql(sql)
 
     if not check["safe"]:
-        return {"error": check["reason"]}
+        raise Exception(check["reason"])
 
     conn = get_connection()
 

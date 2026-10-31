@@ -1,9 +1,14 @@
-环境：
-conda create -n ai-agent python=3.11 -y
+# conda create -n ai-agent python=3.11 -y
+# conda activate ai-agent
+# pip install -r requirements.txt
 
-conda activate ai-agent
-
-依赖：
-pip install fastapi uvicorn openai python-dotenv
-
-uvicorn app:app --reload
+fastapi>=0.110
+uvicorn[standard]>=0.27
+openai>=1.30
+python-dotenv>=1.0
+pydantic>=2.6
+pymysql>=1.1
+redis>=5.0
+faiss-cpu>=1.8
+sentence-transformers>=2.7
+numpy>=1.26

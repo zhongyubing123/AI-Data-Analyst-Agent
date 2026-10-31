@@ -1,6 +1,6 @@
+from pathlib import Path
 import time
 import json
-import os
 
 from datetime import datetime
 
@@ -28,7 +28,8 @@ class Trace:
 
             },
 
-            "error":None
+            "error":None,
+            "llm_calls": 0
 
         }
 
@@ -68,31 +69,22 @@ class Trace:
 
 
 
-    def add_token(self,usage):
+    def add_token(self, usage):
 
-        if usage:
+        if not usage:
+            return
 
-            self.data["token_usage"] = {
+        self.data["llm_calls"] = self.data.get("llm_calls", 0) + 1
 
-                "prompt_tokens":
-                    usage.get(
-                        "prompt_tokens",
-                        0
-                    ),
+        for key in (
+            "prompt_tokens",
+            "completion_tokens",
+            "total_tokens"
+        ):
 
-                "completion_tokens":
-                    usage.get(
-                        "completion_tokens",
-                        0
-                    ),
-
-                "total_tokens":
-                    usage.get(
-                        "total_tokens",
-                        0
-                    )
-
-            }
+            self.data["token_usage"][key] += int(
+                usage.get(key) or 0
+            )
 
 
 
@@ -131,15 +123,11 @@ class Trace:
 
 
 
-        os.makedirs(
-            "logs",
-            exist_ok=True
-        )
+        log_dir = Path(__file__).resolve().parent.parent / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
 
-
-
-        filename = datetime.now().strftime(
-            "logs/trace_%Y%m%d_%H%M%S.json"
+        filename = log_dir / datetime.now().strftime(
+            "trace_%Y%m%d_%H%M%S_%f.json"
         )
 
 

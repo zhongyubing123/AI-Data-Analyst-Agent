@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
+// 看板接口已经由 FastAPI 提供，代理指向 8000
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -9,12 +10,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
-  server: {   // ⚠️ 这里必须是 server，不是 proxy 单独写
+  server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true
-        
       }
     }
   }

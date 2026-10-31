@@ -1,0 +1,37 @@
+[
+    {"id": "b1", "type": "sql", "question": "销售额最高的五个品牌",
+     "expected": {"table": "dws_brand_sales"}},
+
+    {"id": "b2", "type": "sql", "question": "哪个品类卖得最好",
+     "expected": {"table": "dws_category_sales"}},
+
+    {"id": "b3", "type": "sql", "question": "销量前十的商品",
+     "expected": {"table": "dws_item_hot"}},
+
+    {"id": "b4", "type": "sql", "question": "哪个价格带卖得最多",
+     "expected": {"table": "dws_price_band"}},
+
+    {"id": "b5", "type": "sql", "question": "最近一周每天的成交额",
+     "expected": {"table": "dws_daily_trend"}},
+
+    {"id": "b6", "type": "sql", "question": "消费最高的十个用户",
+     "expected": {"table": "dws_user_value"}},
+
+    {"id": "b7", "type": "sql", "question": "购买次数超过三次的用户有多少",
+     "expected": {"table": "dws_user_value"}},
+
+    {"id": "b8", "type": "sql", "question": "浏览很多但买得少的商品",
+     "expected": {"table": "dws_item_hot"}},
+
+    {"id": "b9", "type": "sql", "question": "客单价最高的品牌",
+     "expected": {"table": "dws_brand_sales"}},
+
+    {"id": "b10", "type": "sql", "question": "转化率最低的价格带",
+     "expected": {"table": "dws_price_band"}},
+
+    {"id": "b11", "type": "sql", "question": "收藏次数最多的商品",
+     "expected": {"table": "dws_item_hot"}},
+
+    {"id": "b12", "type": "sql", "question": "每个品类有多少个商品",
+     "expected": {"table": "dws_category_sales"}}
+]

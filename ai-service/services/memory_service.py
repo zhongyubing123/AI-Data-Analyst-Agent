@@ -1,4 +1,3 @@
-import copy
 import json
 
 from services.redis_client import get_redis
@@ -92,10 +91,10 @@ def save_context(
 
 
 
-            elif "category_name" in first:
+            elif "category" in first:
 
                 memory["last_entity"] = (
-                    first["category_name"]
+                    first["category"]
                 )
 
                 memory["last_entity_type"] = "category"
@@ -115,12 +114,6 @@ def save_context(
     )
 
 
-
-def get_context():
-
-    return copy.deepcopy(
-        get_memory()
-    )
 
 def get_sql_context():
 

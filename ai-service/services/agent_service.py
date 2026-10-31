@@ -1,7 +1,7 @@
 import time
 
 from services.trace_service import Trace
-from services.planner_service import planner
+from services.router import route
 from services.memory_service import resolve_context
 
 from services.sql_service import run_sql
@@ -11,175 +11,92 @@ from services.response_service import generate_answer
 from services.chart_service import generate_chart
 
 
-
 def run_agent(message):
-
 
     start = time.time()
 
     trace = Trace()
 
-
-
     try:
 
+        trace.start_step("context")
 
-        trace.start_step(
-            "context"
-        )
+        message = resolve_context(message)
 
+        trace.end_step("context")
 
-        message = resolve_context(
-            message
-        )
+        trace.start_step("route")
 
+        decision = route(message, trace=trace)
 
-        trace.end_step(
-            "context"
-        )
+        trace.end_step("route")
 
+        intent = decision["intent"]
 
+        trace.add("intent", intent)
 
-        trace.start_step(
-            "planner"
-        )
+        if intent in ("sql", "chart"):
 
+            trace.start_step("sql")
 
-        planner_result = planner(
-            message
-        )
+            result = run_sql(message, intent, trace=trace)
 
-
-        trace.end_step(
-            "planner"
-        )
-
-
-
-        intent = planner_result.get(
-            "intent",
-            "chat"
-        )
-
-
-
-        trace.add(
-            "intent",
-            intent
-        )
-
-
-
-        if intent in [
-            "sql",
-            "chart"
-        ]:
-
-
-            result = run_sql(
-                message,
-                intent
-            )
-
+            trace.end_step("sql")
 
             if "error" in result:
 
-                return {
+                answer = result["error"]
 
-                    "answer":
-                    result["error"],
+                if answer == "NO_AVAILABLE_FIELD":
 
-                    "chart":None
+                    answer = "现有数据里没有这个指标，换个问法试试。"
 
-                }
-
-
+                return {"answer": answer, "chart": None}
 
             data = result["data"]
 
-
-
             if intent == "chart":
 
+                chart = generate_chart(data, message, trace=trace)
 
-                return {
+                if chart is None:
 
-                    "answer":
-                    "图表生成完成",
+                    return {"answer": "没有查到数据，无法生成图表。", "chart": None}
 
-                    "chart":
-                    generate_chart(
-                        data,
-                        message
-                    )
+                if "error" in chart:
 
-                }
+                    return {"answer": chart["error"], "chart": None}
 
-
+                return {"answer": "图表生成完成", "chart": chart}
 
             return {
-
-                "answer":
-                generate_answer(
-                    data,
-                    message
-                ),
-
-                "chart":None
-
+                "answer": generate_answer(data, message, trace=trace),
+                "chart": None
             }
-
-
-
 
         if intent == "rag":
 
+            trace.start_step("rag")
 
-            return {
+            answer = run_rag(message, trace=trace)
 
-                "answer":
-                run_rag(message),
+            trace.end_step("rag")
 
-                "chart":None
-
-            }
-
-
-
+            return {"answer": answer, "chart": None}
 
         return {
-
-            "answer":
-            generate_answer(
-                None,
-                message
-            ),
-
-            "chart":None
-
+            "answer": generate_answer(None, message, trace=trace),
+            "chart": None
         }
 
+    except Exception as error:
 
+        trace.add_error(error)
 
-    except Exception as e:
-
-
-        trace.add_error(e)
-
-        raise e
-
-
+        raise error
 
     finally:
 
-
-        trace.add(
-            "latency",
-            round(
-                time.time()-start,
-                3
-            )
-        )
-
+        trace.add("latency", round(time.time() - start, 3))
 
         trace.save()

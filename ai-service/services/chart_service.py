@@ -1,7 +1,9 @@
 import json
 
-from services.llm_client import client
+from services.llm_call import chat_completion
 
+
+REQUIRED_KEYS = ("title", "xAxis", "yAxis", "series")
 
 
 def clean_json(content):
@@ -14,134 +16,47 @@ def clean_json(content):
     )
 
 
-
 def validate_chart(option):
 
-    required = [
-        "title",
-        "xAxis",
-        "yAxis",
-        "series"
-    ]
-
-    return all(
-        key in option
-        for key in required
-    )
+    return all(key in option for key in REQUIRED_KEYS)
 
 
+def build_prompt(data, question):
 
-def generate_chart(data, question):
-    """
-    根据数据库结果生成 ECharts 配置
-    """
+    return f"""数据：{data}
 
+需求：{question}
 
-    if not data:
-
-        return None
-
-
-
-    prompt = f"""
-
-你是一名企业级数据可视化工程师。
-
-
-根据下面的数据生成 ECharts Option。
-
-
-用户需求：
-
-{question}
-
-
-数据：
-
-{data}
-
-
-要求：
-
-1. 只返回JSON
-
-2. 不要Markdown
-
-3. 必须包含：
-
-title
-
-xAxis
-
-yAxis
-
-series
-
-4. series必须使用真实数据
-
-5. 不要编造不存在的数据
-
+只输出一个 JSON 对象，包含 title、xAxis、yAxis、series 四个键，
+series 必须使用上面的真实数据，不要编造。不要 Markdown。
 """
 
 
-    response = client.chat.completions.create(
+def generate_chart(data, question, trace=None):
+    """把查询结果翻成 ECharts 配置，失败返回带 error 的字典。"""
 
-        model="deepseek-chat",
+    if not data:
+        return None
 
+    content, _ = chat_completion(
+        [{"role": "user", "content": build_prompt(data, question)}],
+        trace=trace,
         temperature=0,
-
-        messages=[
-
-            {
-                "role":"user",
-                "content":prompt
-            }
-
-        ]
-
+        max_tokens=500
     )
 
-
-
-    content = clean_json(
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
-
+    content = clean_json(content)
 
     try:
 
         option = json.loads(content)
 
-
-
-        if not validate_chart(option):
-
-            return {
-                "error":
-                "ECharts结构不完整",
-                "raw":
-                option
-            }
-
-
-
-        return option
-
-
-
     except json.JSONDecodeError:
 
+        return {"error": "图表JSON解析失败", "raw": content}
 
-        return {
+    if not validate_chart(option):
 
-            "error":
-            "图表JSON解析失败",
+        return {"error": "ECharts结构不完整", "raw": option}
 
-            "raw":
-            content
-
-        }
+    return option

@@ -1,114 +1,36 @@
 from pathlib import Path
 
-from services.llm_client import client
+from services.llm_call import chat_completion
 from services.conversation_memory import get_history, add_message
 
 
 PROMPT_PATH = (
-    Path(__file__).parent.parent
+    Path(__file__).resolve().parent.parent
     / "prompts"
     / "system_prompt.txt"
 )
 
-
-with open(
-    PROMPT_PATH,
-    "r",
-    encoding="utf-8"
-) as f:
-
-    SYSTEM_PROMPT = f.read()
+SYSTEM_PROMPT = PROMPT_PATH.read_text(encoding="utf-8")
 
 
+def chat(message: str, trace=None):
 
-def chat(message: str):
+    """普通对话，带最近两轮历史，返回 {"content", "usage"}。"""
 
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-    messages = [
+    messages.extend(get_history())
 
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT
-        }
+    messages.append({"role": "user", "content": message})
 
-    ]
-
-
-    # 添加历史上下文
-
-    messages.extend(
-        get_history()
-    )
-
-
-    messages.append(
-        {
-            "role": "user",
-            "content": message
-        }
-    )
-
-
-
-    response = client.chat.completions.create(
-
-        model="deepseek-chat",
-
+    answer, usage = chat_completion(
+        messages,
+        trace=trace,
         temperature=0.2,
-
-        messages=messages
-
+        max_tokens=200
     )
 
+    add_message("user", message)
+    add_message("assistant", answer)
 
-
-    answer = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
-
-
-    # ======================
-    # Token统计
-    # ======================
-
-    usage = {
-
-        "prompt_tokens":
-            response.usage.prompt_tokens,
-
-        "completion_tokens":
-            response.usage.completion_tokens,
-
-        "total_tokens":
-            response.usage.total_tokens
-
-    }
-
-
-
-    # 保存最终回答
-
-    add_message(
-        "user",
-        message
-    )
-
-
-    add_message(
-        "assistant",
-        answer
-    )
-
-
-
-    return {
-
-        "content": answer,
-
-        "usage": usage
-
-    }
+    return {"content": answer, "usage": usage}

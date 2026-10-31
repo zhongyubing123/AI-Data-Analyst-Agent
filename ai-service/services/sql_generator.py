@@ -1,116 +1,48 @@
 from pathlib import Path
 
-from services.llm_client import client
+from services.llm_call import chat_completion
 
 
 SCHEMA_PATH = (
-    Path(__file__).parent.parent
+    Path(__file__).resolve().parent.parent
     / "prompts"
     / "schema.txt"
 )
 
+SCHEMA = SCHEMA_PATH.read_text(encoding="utf-8")
 
-SCHEMA = SCHEMA_PATH.read_text(
-    encoding="utf-8"
-)
-
+SQL_SYSTEM = "你只输出SQL，不要解释。"
 
 
 def clean_sql(sql):
 
-    sql = sql.replace(
-        "```sql",
-        ""
-    )
-
-    sql = sql.replace(
-        "```",
-        ""
-    )
+    sql = sql.replace("```sql", "").replace("```", "")
 
     return sql.strip()
 
 
+def build_prompt(question, context=None):
 
-def generate_sql(
-        question: str,
-        context=None
-):
+    # schema 放最前面且保持不变，命中上下文缓存
+    return f"""{SCHEMA}
 
+问题：{question}
+上下文：{context or "无"}
 
-    prompt = f"""
-你是一名SQL生成助手。
-
-数据库结构：
-
-{SCHEMA}
-
-
-用户问题：
-
-{question}
-
-
-上下文：
-
-{context}
-
-
-要求：
-
-1. 只能使用Schema存在的表和字段
-
-2. 只能生成SELECT语句
-
-3. 如果存在实体信息：
-
-item:
-使用item_name查询
-
-brand:
-使用brand查询
-
-
-4. 不允许商品名称查询品牌字段
-
-5. 如果无法查询，返回：
-NO_AVAILABLE_FIELD
-
-6. 只返回SQL，不要解释
-
+要求：只写一条 SELECT，字段必须来自上面的表，查不了就返回 NO_AVAILABLE_FIELD。
 """
 
 
-    response = client.chat.completions.create(
+def generate_sql(question: str, context=None, trace=None):
 
-        model="deepseek-chat",
-
+    content, _ = chat_completion(
+        [
+            {"role": "system", "content": SQL_SYSTEM},
+            {"role": "user", "content": build_prompt(question, context)}
+        ],
+        trace=trace,
         temperature=0,
-
-        messages=[
-
-            {
-                "role":"system",
-                "content":
-                "你只输出SQL"
-            },
-
-            {
-                "role":"user",
-                "content":prompt
-            }
-
-        ]
-
+        max_tokens=200
     )
 
-
-
-    sql = response.choices[0].message.content
-
-
-    sql = clean_sql(sql)
-
-
-
-    return sql
+    return clean_sql(content)

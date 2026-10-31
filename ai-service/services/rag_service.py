@@ -2,57 +2,24 @@ from services.vector_search import search
 from services.deepseek_service import chat
 
 
+def build_prompt(context, message):
+
+    return f"""企业知识：
+{context}
+
+问题：{message}
+
+只根据上面的知识回答，知识里没有就说无法确定，不要编造。三句话内。
+"""
 
 
-def run_rag(message):
-
+def run_rag(message, trace=None):
 
     docs = search(message)
 
-
-
     if not docs:
+        return "知识库里没有相关内容。"
 
-        return "未找到相关企业知识。"
+    context = "\n".join(docs[:3])
 
-
-
-    context = "\n".join(
-        docs[:3]
-    )
-
-
-
-    response = chat(
-
-        f"""
-
-企业知识：
-
-{context}
-
-
-用户问题：
-
-{message}
-
-
-回答要求：
-
-1. 根据企业知识回答
-
-2. 如果知识中没有答案，
-   明确说明无法确定
-
-3. 不要编造信息
-
-"""
-
-    )
-
-
-
-   
-
-
-    return response["content"]
+    return chat(build_prompt(context, message), trace=trace)["content"]

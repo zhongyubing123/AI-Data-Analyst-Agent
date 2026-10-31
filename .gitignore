@@ -78,3 +78,7 @@ UserBehavior_*.zip
 Thumbs.db
 desktop.ini
 
+
+# 评测产物
+evaluation/results/
+evaluation/_vectors/

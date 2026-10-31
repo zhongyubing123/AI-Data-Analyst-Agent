@@ -1,68 +1,27 @@
-Database: ecommerce
+库：ecommerce
 
+表 dws_item_hot(item_id, item_name, category, brand, pv_count, fav_count, cart_count, buy_count, buyer_count, sales_amount)
+  商品维度。金额只统计购买行为。
 
-Table: dws_brand_sales
+表 dws_brand_sales(brand, buy_count, buyer_count, sales_amount, avg_amount)
+  品牌维度。avg_amount 是客单价。
 
-Description:
-品牌销售统计表，用于分析品牌销量和销售额。
+表 dws_category_sales(category, buy_count, item_count, buyer_count, sales_amount, avg_amount)
+  品类维度。item_count 是该品类商品数。
 
-Columns:
-brand: 品牌名称
-sales_amount: 销售金额
-buy_count: 购买数量
+表 dws_price_band(price_level, item_count, pv_count, buy_count, buyer_count, sales_amount, convert_rate)
+  价格带维度。convert_rate 是购买次数除以浏览次数。
 
+表 dws_daily_trend(dt, pv_count, cart_count, buy_count, buyer_count, sales_amount)
+  每日趋势。dt 形如 2025-08-01。
 
-Table: dws_category_sales
+表 dws_user_value(user_id, pv_count, fav_count, cart_count, buy_count, total_amount, first_dt, last_dt, value_level)
+  用户维度。value_level 取值为 高价值、中价值、一次购买、仅浏览。
 
-Description:
-商品分类销售统计表，用于分析不同商品分类的销量和销售额。
-
-Columns:
-category: 商品分类名称
-sales_amount: 销售金额
-buy_count: 购买数量
-
-
-Table: dws_item_hot
-
-Description:
-商品热度统计表，用于分析热门商品。
-
-Columns:
-item_id: 商品ID
-item_name: 商品名称
-pv_count: 浏览次数
-fav_count: 收藏次数
-buy_count: 购买数量
-
-
-Table: dws_user_active
-
-Description:
-用户活跃统计表，用于分析用户购买活跃情况。
-
-Columns:
-user_id: 用户ID
-buy_count: 用户购买次数
-
-
-
-Important Rules:
-
-1. Only generate SELECT statements.
-
-2. Only use tables and columns explicitly listed above.
-
-3. Do not guess missing fields.
-
-4. If the user's question requires a field that does not exist in the database:
-   return:
-   NO_AVAILABLE_FIELD
-
-5. Do not generate SQL for unavailable information.
-
-6. Do not use SELECT *.
-
-7. Use LIMIT for ranking queries.
-
-8. Return SQL only.
+规则：
+1 只生成 SELECT 语句
+2 只能用上面列出的表和字段
+3 缺字段时返回 NO_AVAILABLE_FIELD
+4 不用 SELECT *
+5 排行类查询加 LIMIT
+6 只输出 SQL，不要解释

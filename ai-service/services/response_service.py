@@ -1,27 +1,12 @@
 from services.deepseek_service import chat
 
 
-def generate_answer(data, message):
+def generate_answer(data, message, trace=None):
 
     if data is None:
 
-        response = chat(message)
+        return chat(message, trace=trace)["content"]
 
-    else:
+    prompt = f"数据：{data}\n\n问题：{message}\n\n按数据回答，三句话内。"
 
-        response = chat(
-f"""
-数据库结果:
-
-{data}
-
-用户问题:
-
-{message}
-
-根据数据库结果回答。
-不要编造。
-"""
-        )
-
-    return response["content"]
+    return chat(prompt, trace=trace)["content"]
