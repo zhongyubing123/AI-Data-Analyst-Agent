@@ -9,11 +9,11 @@
         class="message"
       >
         <div v-if="item.role==='user'" class="user">
-          👤 {{ item.content }}
+          👤用户： {{ item.content }}
         </div>
 
         <div v-else class="assistant">
-          🤖 {{ item.content }}
+          🤖助手： {{ item.content }}
 
           <AIChart
             v-if="item.chart"
