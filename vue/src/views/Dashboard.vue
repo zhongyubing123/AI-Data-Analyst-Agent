@@ -32,9 +32,8 @@ const pass = (name) => emit("pick", name)
 <style scoped>
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
-  height: 100%;
 }
 
 .cell {
@@ -42,12 +41,6 @@ const pass = (name) => emit("pick", name)
   border-radius: 8px;
   padding: 8px;
   min-height: 300px;
-}
-
-@media (max-width: 860px) {
-  .grid {
-    grid-template-columns: 1fr;
-    height: auto;
-  }
+  height: 300px;
 }
 </style>
