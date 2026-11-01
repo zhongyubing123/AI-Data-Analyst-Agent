@@ -55,23 +55,29 @@ def run_agent(message):
 
             data = result["data"]
 
+            evidence = {
+                "sql": result["sql"],
+                "rows": len(data) if isinstance(data, list) else 0
+            }
+
             if intent == "chart":
 
                 chart = generate_chart(data, message, trace=trace)
 
                 if chart is None:
 
-                    return {"answer": "没有查到数据，无法生成图表。", "chart": None}
+                    return {"answer": "没有查到数据，无法生成图表。", "chart": None, **evidence}
 
                 if "error" in chart:
 
-                    return {"answer": chart["error"], "chart": None}
+                    return {"answer": chart["error"], "chart": None, **evidence}
 
-                return {"answer": "图表生成完成", "chart": chart}
+                return {"answer": "图表生成完成", "chart": chart, **evidence}
 
             return {
                 "answer": generate_answer(data, message, trace=trace),
-                "chart": None
+                "chart": None,
+                **evidence
             }
 
         if intent == "rag":
