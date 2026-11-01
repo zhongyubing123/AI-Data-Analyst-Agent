@@ -1,15 +1,15 @@
 <template>
   <div class="grid">
     <div class="cell">
-      <BrandChart @pick="pass" />
+      <BrandChart />
     </div>
 
     <div class="cell">
-      <CategoryChart @pick="pass" />
+      <CategoryChart />
     </div>
 
     <div class="cell">
-      <ItemHotChart @pick="pass" />
+      <ItemHotChart />
     </div>
 
     <div class="cell">
@@ -23,16 +23,12 @@ import BrandChart from "@/components/BrandChart.vue"
 import CategoryChart from "@/components/CategoryChart.vue"
 import ItemHotChart from "@/components/ItemHotChart.vue"
 import DailyTrendChart from "@/components/DailyTrendChart.vue"
-
-const emit = defineEmits(["pick"])
-
-const pass = (name) => emit("pick", name)
 </script>
 
 <style scoped>
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
@@ -40,7 +36,12 @@ const pass = (name) => emit("pick", name)
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 8px;
-  min-height: 300px;
-  height: 300px;
+  height: 320px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -2,31 +2,17 @@
   <div class="app">
     <header class="topbar">
       <span class="title">电商数据分析助手</span>
-      <span class="tip">点击图表上的元素，名字会带进右侧输入框</span>
+      <span class="tip">直接提问，或点击图表上的元素把名字带进输入框</span>
     </header>
 
-    <main class="body">
-      <section class="left">
-        <Dashboard @pick="onPick" />
-      </section>
-
-      <aside class="right">
-        <Chat :draft="draft" @used="draft = ''" />
-      </aside>
+    <main class="main">
+      <Chat />
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue"
 import Chat from "./views/Chat.vue"
-import Dashboard from "./views/Dashboard.vue"
-
-const draft = ref("")
-
-const onPick = (name) => {
-  draft.value = name
-}
 </script>
 
 <style scoped>
@@ -38,10 +24,11 @@ const onPick = (name) => {
 
 .topbar {
   height: 52px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 20px;
+  padding: 0 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -55,38 +42,9 @@ const onPick = (name) => {
   opacity: 0.6;
 }
 
-.body {
+.main {
   flex: 1;
-  display: flex;
   min-height: 0;
-}
-
-.left {
-  flex: 1;
-  min-width: 0;
-  padding: 16px;
-  overflow: auto;
-}
-
-.right {
-  width: 360px;
-  flex-shrink: 0;
-  border-left: 1px solid rgba(255, 255, 255, 0.15);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-@media (max-width: 860px) {
-  .body {
-    flex-direction: column;
-  }
-
-  .right {
-    width: auto;
-    height: 55%;
-    border-left: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-  }
+  overflow: hidden;
 }
 </style>

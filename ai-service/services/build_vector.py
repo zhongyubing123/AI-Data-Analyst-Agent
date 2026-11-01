@@ -1,3 +1,9 @@
+import os
+
+# 模型已缓存在本地，强制离线，避免每次检索都联网校查导致超时
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 """构建知识库索引：读 knowledge/*.md，切块、编码、存进 vector_store。
 
 用法（在 ai-service 目录下）：

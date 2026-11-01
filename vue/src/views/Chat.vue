@@ -1,67 +1,79 @@
 <template>
-  <div class="chat-container">
-    <div class="chat-box" ref="box">
-      <div
-        v-for="(item,index) in messages"
-        :key="index"
-        class="message"
-      >
-        <div v-if="item.role==='user'" class="user">
-          👤 {{ item.content }}
+  <div class="chat">
+    <div class="stream" ref="box">
+      <template v-if="messages.length === 0">
+        <p class="hint">还没有提问，先看看整体情况；也可以直接问一句，比如“哪个品类卖得最好”。</p>
+        <Dashboard @pick="onPick" />
+      </template>
+
+      <template v-else>
+        <div
+          v-for="(item,index) in messages"
+          :key="index"
+          class="message"
+        >
+          <div v-if="item.role==='user'" class="user">
+            👤 {{ item.content }}
+          </div>
+
+          <div v-else class="assistant">
+            🤖 {{ item.content }}
+
+            <AIChart
+              v-if="item.chart"
+              :option="item.chart"
+            />
+
+            <details v-if="item.sql" class="evidence">
+              <summary>依据：{{ item.rows }} 行数据</summary>
+              <pre>{{ item.sql }}</pre>
+            </details>
+          </div>
         </div>
 
-        <div v-else class="assistant">
-          🤖 {{ item.content }}
+        <div v-if="loading" class="assistant loading">正在查询…</div>
+      </template>
+    </div>
 
-          <AIChart
-            v-if="item.chart"
-            :option="item.chart"
-          />
+    <div class="bottom">
+      <div class="chips">
+        <button
+          v-for="text in examples"
+          :key="text"
+          @click="question = text"
+        >
+          {{ text }}
+        </button>
 
-          <details v-if="item.sql" class="evidence">
-            <summary>依据：{{ item.rows }} 行数据</summary>
-            <pre>{{ item.sql }}</pre>
-          </details>
-        </div>
+        <button
+          v-if="messages.length > 0"
+          class="reset"
+          @click="reset"
+        >
+          返回看板
+        </button>
       </div>
 
-      <div v-if="loading" class="assistant loading">正在查询…</div>
-    </div>
+      <div class="input-box">
+        <input
+          v-model="question"
+          @keyup.enter="sendMessage"
+          placeholder="问点什么，比如：哪个品牌客单价最高"
+        />
 
-    <div class="examples">
-      <button
-        v-for="text in examples"
-        :key="text"
-        @click="question = text"
-      >
-        {{ text }}
-      </button>
-    </div>
-
-    <div class="input-box">
-      <input
-        v-model="question"
-        @keyup.enter="sendMessage"
-        placeholder="问点什么，比如：哪个品牌客单价最高"
-      />
-
-      <button @click="sendMessage" :disabled="loading">
-        发送
-      </button>
+        <button @click="sendMessage" :disabled="loading">
+          发送
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from "vue"
+import { ref, nextTick } from "vue"
 import axios from "axios"
 import AIChart from "../components/AIChart.vue"
-
-const props = defineProps({
-  draft: { type: String, default: "" }
-})
-
-const emit = defineEmits(["used"])
+import Dashboard from "./Dashboard.vue"
 
 const question = ref("")
 const messages = ref([])
@@ -74,16 +86,16 @@ const examples = [
   "给点运营建议"
 ]
 
-// 点图带进来的名字，填进输入框，不自动发送
-watch(
-  () => props.draft,
-  (value) => {
-    if (value) {
-      question.value = value
-      emit("used")
-    }
+const reset = () => {
+  messages.value = []
+  question.value = ""
+}
+
+const onPick = (name) => {
+  if (name) {
+    question.value = name
   }
-)
+}
 
 const scrollBottom = async () => {
   await nextTick()
@@ -143,35 +155,42 @@ const sendMessage = async () => {
 </script>
 
 <style scoped>
-.chat-container {
+.chat {
+  height: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
   min-height: 0;
-  padding: 12px 16px 16px;
+  padding: 16px 24px 18px;
   box-sizing: border-box;
 }
 
-.chat-box {
+.stream {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 8px;
+}
+
+.hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  opacity: 0.65;
 }
 
 .message {
-  margin-bottom: 14px;
-  font-size: 14px;
+  margin-bottom: 22px;
+  font-size: 15px;
+  max-width: 900px;
 }
 
 .user {
   text-align: right;
   color: #6cb6ff;
+  margin-bottom: 6px;
 }
 
 .assistant {
-  color: inherit;
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .loading {
@@ -179,7 +198,7 @@ const sendMessage = async () => {
 }
 
 .evidence {
-  margin-top: 6px;
+  margin-top: 8px;
   font-size: 12px;
   opacity: 0.65;
 }
@@ -198,16 +217,21 @@ const sendMessage = async () => {
   font-family: Consolas, monospace;
 }
 
-.examples {
+.bottom {
+  flex-shrink: 0;
+  padding-top: 10px;
+}
+
+.chips {
   display: flex;
-  gap: 6px;
-  margin: 8px 0;
+  gap: 8px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
-.examples button {
+.chips button {
   width: auto;
-  padding: 3px 10px;
+  padding: 3px 12px;
   font-size: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -216,19 +240,24 @@ const sendMessage = async () => {
   cursor: pointer;
 }
 
+.chips .reset {
+  margin-left: auto;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 .input-box {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 input {
   flex: 1;
-  padding: 8px;
+  padding: 10px 12px;
   min-width: 0;
 }
 
 .input-box button {
-  width: 72px;
+  width: 88px;
   flex-shrink: 0;
 }
 </style>

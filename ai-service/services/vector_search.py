@@ -1,3 +1,9 @@
+import os
+
+# 模型已缓存在本地，强制离线，避免每次检索都联网校查导致超时
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
 """知识检索：向量检索为主，字符重合度为辅。
 
 all-MiniLM-L6-v2 是英文模型，中文语义区分度一般。知识库只有几块文档，

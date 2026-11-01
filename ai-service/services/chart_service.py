@@ -26,12 +26,18 @@ def validate_chart(option):
 
 def build_prompt(data, question):
 
-    return f"""数据：{rows}
+    rows = data[:MAX_ROWS] if isinstance(data, list) else data
+
+    total = len(data) if isinstance(data, list) else 0
+
+    return f"""你只输出 JSON，不要输出 SQL，不要解释，不要 Markdown 代码块。
+
+数据（共 {total} 行，以下是前 {len(rows)} 行）：{rows}
 
 需求：{question}
 
-只输出一个 JSON 对象，包含 title、xAxis、yAxis、series 四个键，
-series 必须使用上面的真实数据，不要编造。不要 Markdown。
+输出一个 ECharts 配置对象，必须包含 title、xAxis、yAxis、series 四个键，
+series 使用上面的真实数据，第一个字符必须是花括号。金额统一除以一万，按万元显示并保留一位小数；类目超过八个时只取前八个。
 """
 
 
