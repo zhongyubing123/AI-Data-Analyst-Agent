@@ -5,6 +5,9 @@ from services.llm_call import chat_completion
 
 REQUIRED_KEYS = ("title", "xAxis", "yAxis", "series")
 
+# 行数太多会让模型输出的 JSON 被截断，画图用前 30 行足够
+MAX_ROWS = 30
+
 
 def clean_json(content):
 
@@ -23,7 +26,7 @@ def validate_chart(option):
 
 def build_prompt(data, question):
 
-    return f"""数据：{data}
+    return f"""数据：{rows}
 
 需求：{question}
 
@@ -42,7 +45,7 @@ def generate_chart(data, question, trace=None):
         [{"role": "user", "content": build_prompt(data, question)}],
         trace=trace,
         temperature=0,
-        max_tokens=500
+        max_tokens=900
     )
 
     content = clean_json(content)

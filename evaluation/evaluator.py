@@ -90,9 +90,10 @@ def judge(case, text, result):
 
     if rule.get("expect_no_sql"):
 
-        sql = result.get("sql")
+        sql = (result.get("sql") or "").strip()
 
-        if sql:
+        # NO_AVAILABLE_FIELD 就是拒绝的标记，不算生成了 SQL
+        if sql and sql != "NO_AVAILABLE_FIELD":
 
             reasons.append("应该拒绝生成 SQL，实际生成了")
 
@@ -129,7 +130,8 @@ def main():
 
     for case in cases:
 
-        if MODE == "fast" and (case.get("assert") or {}).get("chart"):
+        # fast 模式只测语句生成，图表、知识问答、建议在 full 模式里测
+        if MODE == "fast" and case.get("type") != "sql":
 
             skipped += 1
 

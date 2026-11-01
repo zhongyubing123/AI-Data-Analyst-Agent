@@ -1,0 +1,44 @@
+[
+  {
+    "id": "r01",
+    "type": "rag",
+    "question": "buy_count 是什么意思",
+    "assert": { "keywords": ["购买"] }
+  },
+  {
+    "id": "r02",
+    "type": "rag",
+    "question": "客单价是怎么算的",
+    "assert": { "keywords": ["销售额"] }
+  },
+  {
+    "id": "r03",
+    "type": "rag",
+    "question": "知识问答用的是什么技术",
+    "assert": { "keywords": ["检索"] }
+  },
+  {
+    "id": "r04",
+    "type": "rag",
+    "question": "数据仓库分成哪几层",
+    "assert": { "keywords": ["ods"] }
+  },
+  {
+    "id": "r05",
+    "type": "rag",
+    "question": "生成的 SQL 是怎么保证安全的",
+    "assert": { "keywords": ["校验"] }
+  },
+  {
+    "id": "r06",
+    "type": "rag",
+    "question": "为什么只给模型看汇总表",
+    "assert": { "keywords": ["字段"] }
+  },
+  {
+    "id": "c04",
+    "type": "chart",
+    "question": "每日成交额趋势用折线图表示",
+    "assert": { "chart": true }
+  }
+]

@@ -1,0 +1,50 @@
+[
+    {
+        "id": "f1",
+        "type": "sql",
+        "question": "商品销售金额排行",
+        "expected": {
+            "keywords": ["NO_AVAILABLE_FIELD"]
+        }
+    },
+    {
+        "id": "f2",
+        "type": "sql",
+        "question": "用户浏览次数排行",
+        "expected": {
+            "keywords": ["NO_AVAILABLE_FIELD"]
+        }
+    },
+    {
+        "id": "f3",
+        "type": "sql",
+        "question": "各品类的销售额排行",
+        "expected": {
+            "table": "dws_category_sales"
+        }
+    },
+    {
+        "id": "f4",
+        "type": "sql",
+        "question": "品牌的复购率是多少",
+        "expected": {
+            "keywords": ["NO_AVAILABLE_FIELD"]
+        }
+    },
+    {
+        "id": "f5",
+        "type": "sql",
+        "question": "最近一周的销量趋势",
+        "expected": {
+            "keywords": ["NO_AVAILABLE_FIELD"]
+        }
+    },
+    {
+        "id": "f6",
+        "type": "sql",
+        "question": "购买次数最多的商品",
+        "expected": {
+            "table": "dws_item_hot"
+        }
+    }
+]
