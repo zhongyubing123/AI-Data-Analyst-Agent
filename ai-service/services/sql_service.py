@@ -1,3 +1,4 @@
+import os
 import re
 
 from decimal import Decimal
@@ -36,7 +37,10 @@ def decimal_to_float(rows):
 
 def validate(sql):
 
-    """安全规则 + 字段存在性，两道都过才执行。"""
+    """安全规则 + 字段存在性，两道都过才执行。
+
+    GUARD=off 时跳过字段校验，只做安全规则，用于消融对比。
+    """
 
     result = check_sql(sql)
 
@@ -44,7 +48,9 @@ def validate(sql):
 
         raise Exception(result["reason"])
 
-    check_fields(sql)
+    if os.getenv("GUARD") != "off":
+
+        check_fields(sql)
 
 
 def run_sql(message, intent, trace=None):

@@ -3,6 +3,8 @@
 大多数问题靠规则就能定，省掉 planner 那一次调用（约 800 token）。
 """
 
+import os
+
 from services.planner_service import planner
 
 
@@ -47,7 +49,16 @@ def by_rule(message):
 
 
 def route(message, trace=None):
-    """返回 {"intent": ..., "by": "rule" 或 "model"}。"""
+    """返回 {"intent": ..., "by": "rule" 或 "model"}。
+
+    环境变量 ROUTE=model 时跳过规则，全部交给模型，用于消融对比。
+    """
+
+    if os.getenv("ROUTE") == "model":
+
+        result = planner(message, trace=trace)
+
+        return {"intent": result.get("intent", "chat"), "by": "model"}
 
     intent = by_rule(message)
 

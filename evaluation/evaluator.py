@@ -1,366 +1,222 @@
+"""评测：跑用例，按表名、关键词、数字、图表结构、禁用词判定。
+
+用法：
+    $env:MODE="fast"; $env:CASES="test_cases.json"; python evaluation/evaluator.py
+    $env:MODE="full"; $env:CASES="test_cases.json"; python evaluation/evaluator.py
+
+环境变量：
+    MODE   fast 只测语句生成，full 走完整链路
+    CASES  用例文件名，默认 test_cases.json
+    LIMIT  只跑前 N 条，调试用
+"""
+
 import json
-import sys
 import os
+import re
+import sys
 import time
 
+from pathlib import Path
 
-# =====================
-# Evaluation模式
-# =====================
 
-# fast:
-#   低成本测试
-#
-# full:
-#   完整Agent测试
+BASE = Path(__file__).resolve().parent.parent
+
+sys.path.insert(0, str(BASE / "ai-service"))
+
+
+from services.sql_generator import generate_sql  # noqa: E402
+from services.agent_service import run_agent  # noqa: E402
+
 
 MODE = os.getenv("MODE", "full")
 
+CASES = os.getenv("CASES", "test_cases.json")
 
-# 指定用例文件，不指定就按 MODE 走默认的两份
-CASES = os.getenv("CASES", "")
+LIMIT = int(os.getenv("LIMIT", "0"))
 
+RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 
-BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
-)
+def load_cases():
 
+    path = Path(__file__).resolve().parent / CASES
 
-AI_SERVICE_PATH = os.path.join(
-    BASE_DIR,
-    "ai-service"
-)
+    cases = json.loads(path.read_text(encoding="utf-8"))
 
+    return cases[:LIMIT] if LIMIT else cases
 
-sys.path.append(AI_SERVICE_PATH)
 
+def ask(question):
+    """返回 (用于判定的文本, 结构化结果)。"""
 
+    if MODE == "fast":
 
-# 完整Agent
-from services.agent_service import run_agent
+        sql = generate_sql(question) or ""
 
+        return sql, {"sql": sql}
 
-# fast模式需要
-from services.sql_generator import generate_sql
+    result = run_agent(question)
 
+    text = "%s %s" % (result.get("answer") or "", result.get("sql") or "")
 
+    return text, result
 
-if CASES:
 
-    TEST_FILE=os.path.join(
-        os.path.dirname(__file__),
-        CASES
-    )
+def judge(case, text, result):
 
-elif MODE=="fast":
+    rule = case.get("assert") or {}
 
-    TEST_FILE=os.path.join(
-        os.path.dirname(__file__),
-        "fast_test_cases.json"
-    )
+    reasons = []
 
-else:
+    low = text.lower()
 
-    TEST_FILE=os.path.join(
-        os.path.dirname(__file__),
-        "agent_test_cases.json"
-    )
+    table = rule.get("table")
 
+    if table and table.lower() not in low:
 
-RESULTS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "results"
-)
+        reasons.append("表不对，应为 %s" % table)
 
-os.makedirs(RESULTS_DIR, exist_ok=True)
+    for word in rule.get("keywords", []):
 
-CASE_STEM = os.path.splitext(
-    os.path.basename(TEST_FILE)
-)[0]
+        if word.lower() not in low:
 
-RESULT_FILE = os.path.join(
-    RESULTS_DIR,
-    f"{MODE}_{CASE_STEM}_results.json"
-)
+            reasons.append("缺关键词 %s" % word)
 
+    for word in rule.get("forbid", []):
 
+        if word.lower() in low:
 
-def load_test_cases():
+            reasons.append("出现禁用词 %s" % word)
 
-    with open(
-        TEST_FILE,
-        "r",
-        encoding="utf-8"
-    ) as f:
+    if rule.get("expect_no_sql"):
 
-        return json.load(f)
+        sql = result.get("sql")
 
+        if sql:
 
+            reasons.append("应该拒绝生成 SQL，实际生成了")
 
-# =====================
-# Fast Evaluation
-# =====================
+    if MODE == "full" and rule.get("has_number"):
 
-def fast_evaluate(case):
+        answer = result.get("answer") or ""
 
-    """fast 模式只验证语句生成，其他类型跳过。"""
+        if not re.search(r"\d", answer):
 
-    if case["type"] not in ("sql", "sql_retry"):
+            reasons.append("回答里没有数字")
 
-        return {"answer": "skip"}
+    if MODE == "full" and rule.get("chart"):
 
-    return {"sql": generate_sql(case.get("question"))}
+        chart = result.get("chart")
 
+        if not isinstance(chart, dict) or "series" not in chart:
 
+            reasons.append("没有返回有效图表")
 
-# =====================
-# 判断结果
-# =====================
-
-
-def check_expected(case,response):
-
-    text=str(response)
-
-
-    expected=case.get(
-        "expected",
-        {}
-    )
-
-
-    keywords=expected.get(
-        "keywords",
-        []
-    )
-
-
-    for keyword in keywords:
-
-        if keyword not in text:
-
-            return False
-
-
-
-    # 表名断言只对 fast 模式有意义：那个模式响应就是 SQL 文本。
-    # full 模式返回自然语言，不会出现表名。
-    table=expected.get(
-        "table"
-    )
-
-
-    if table and MODE == "fast":
-
-        if table not in text:
-
-            return False
-
-
-
-    return True
-
-
-
-
-# =====================
-# 单个测试
-# =====================
-
-
-def evaluate_case(case):
-
-
-    print("\n================")
-
-    print(
-        "测试:",
-        case.get("question")
-        or
-        case.get("conversation")
-    )
-
-
-    start=time.time()
-
-
-    try:
-
-
-        if MODE == "full":
-
-
-            if case["type"]=="memory":
-
-
-                response=None
-
-
-                for msg in case["conversation"]:
-
-                    response=run_agent(msg)
-
-
-            else:
-
-
-                response=run_agent(
-                    case["question"]
-                )
-
-
-
-        else:
-
-
-            response=fast_evaluate(
-                case
-            )
-
-
-
-        success=check_expected(
-            case,
-            response
-        )
-
-
-
-        result={
-
-            "id":case["id"],
-
-            "type":case["type"],
-
-            "mode":MODE,
-
-            "success":success,
-
-            "latency":
-                round(
-                    time.time()-start,
-                    3
-                ),
-
-            "response":
-                str(response)
-
-        }
-
-
-
-    except Exception as e:
-
-
-        result={
-
-            "id":case["id"],
-
-            "type":case["type"],
-
-            "mode":MODE,
-
-            "success":False,
-
-            "error":
-                str(e)
-
-        }
-
-
-
-    print(result)
-
-
-    return result
-
-
-
-
-# =====================
-# 主程序
-# =====================
+    return (not reasons), reasons
 
 
 def main():
 
+    cases = load_cases()
 
-    cases=load_test_cases()
+    rows = []
 
+    passed = 0
 
-    results=[]
+    skipped = 0
 
+    started = time.time()
 
     for case in cases:
 
+        if MODE == "fast" and (case.get("assert") or {}).get("chart"):
 
-        results.append(
-            evaluate_case(case)
-        )
+            skipped += 1
 
+            continue
 
+        begin = time.time()
 
-    total=len(results)
+        try:
 
+            text, result = ask(case["question"])
 
-    success=sum(
-        1
-        for r in results
-        if r.get("success")
-    )
+            ok, reasons = judge(case, text, result)
 
+        except Exception as error:
 
+            ok, reasons = False, ["异常: %s" % error]
 
-    summary={
+            text = ""
 
-        "mode":MODE,
+        cost = round(time.time() - begin, 2)
 
-        "total":total,
+        passed += 1 if ok else 0
 
-        "success":success,
+        rows.append({
+            "id": case.get("id"),
+            "type": case.get("type"),
+            "question": case["question"],
+            "pass": ok,
+            "reasons": reasons,
+            "seconds": cost,
+            "text": text[:200]
+        })
 
-        "accuracy":
-            round(
-                success/total,
-                3
-            ),
+        print(("OK   " if ok else "FAIL ") + "%s %s" % (case.get("id"), case["question"]))
 
-        "results":results
+        for reason in reasons:
 
-    }
+            print("        " + reason)
 
+    total = len(rows)
 
+    accuracy = round(passed / total, 4) if total else 0
 
-    with open(
-        RESULT_FILE,
-        "w",
+    summary = {}
+
+    for row in rows:
+
+        bucket = summary.setdefault(row["type"], {"total": 0, "pass": 0})
+
+        bucket["total"] += 1
+
+        bucket["pass"] += 1 if row["pass"] else 0
+
+    elapsed = round(time.time() - started, 1)
+
+    print("\n模式 %s，用例 %s，跳过 %d，用时 %s 秒" % (MODE, CASES, skipped, elapsed))
+    print("总准确率 %s（%d / %d）" % (accuracy, passed, total))
+
+    for name, bucket in sorted(summary.items()):
+
+        rate = round(bucket["pass"] / bucket["total"], 4)
+
+        print("  %s：%s（%d / %d）" % (name, rate, bucket["pass"], bucket["total"]))
+
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    stem = Path(CASES).stem
+
+    out = RESULTS_DIR / ("%s_%s.json" % (MODE, stem))
+
+    out.write_text(
+        json.dumps({
+            "mode": MODE,
+            "cases": CASES,
+            "accuracy": accuracy,
+            "passed": passed,
+            "total": total,
+            "skipped": skipped,
+            "seconds": elapsed,
+            "summary": summary,
+            "results": rows
+        }, ensure_ascii=False, indent=2),
         encoding="utf-8"
-    ) as f:
-
-
-        json.dump(
-            summary,
-            f,
-            ensure_ascii=False,
-            indent=4
-        )
-
-
-
-    print("\n================")
-
-    print(
-        "Evaluation完成"
     )
 
-    print(summary)
+    print("结果写入 %s" % out)
 
 
-
-
-if __name__=="__main__":
-
+if __name__ == "__main__":
     main()

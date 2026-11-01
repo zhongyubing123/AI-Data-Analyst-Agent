@@ -1,0 +1,304 @@
+[
+  {
+    "id": "q01",
+    "type": "sql",
+    "question": "哪个品类卖得最好",
+    "assert": {
+      "table": "dws_category_sales",
+      "keywords": [
+        "sales_amount"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q02",
+    "type": "sql",
+    "question": "销售额前十的品牌是哪些",
+    "assert": {
+      "table": "dws_brand_sales",
+      "keywords": [
+        "sales_amount",
+        "limit"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q03",
+    "type": "sql",
+    "question": "哪个商品卖得最多",
+    "assert": {
+      "table": "dws_item_hot",
+      "keywords": [
+        "buy_count"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q04",
+    "type": "sql",
+    "question": "每天成交额是多少",
+    "assert": {
+      "table": "dws_daily_trend",
+      "keywords": [
+        "sales_amount"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q05",
+    "type": "sql",
+    "question": "消费最高的十个用户",
+    "assert": {
+      "table": "dws_user_value",
+      "keywords": [
+        "total_amount",
+        "limit"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q06",
+    "type": "sql",
+    "question": "每个品类有多少个商品",
+    "assert": {
+      "table": "dws_category_sales",
+      "keywords": [
+        "item_count"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q07",
+    "type": "sql",
+    "question": "哪个品牌客单价最高",
+    "assert": {
+      "table": "dws_brand_sales",
+      "keywords": [
+        "avg_amount"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q08",
+    "type": "sql",
+    "question": "买家数最多的品牌",
+    "assert": {
+      "table": "dws_brand_sales",
+      "keywords": [
+        "buyer_count"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q09",
+    "type": "sql",
+    "question": "收藏次数最多的商品",
+    "assert": {
+      "table": "dws_item_hot",
+      "keywords": [
+        "fav_count"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q10",
+    "type": "sql",
+    "question": "买过三次以上的用户有多少",
+    "assert": {
+      "table": "dws_user_value",
+      "keywords": [
+        "buy_count"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q11",
+    "type": "sql",
+    "question": "电子产品的销售额是多少",
+    "assert": {
+      "table": "dws_category_sales",
+      "keywords": [
+        "电子产品"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "q12",
+    "type": "sql",
+    "question": "销量最高的前五个商品",
+    "assert": {
+      "table": "dws_item_hot",
+      "keywords": [
+        "buy_count",
+        "limit"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "c01",
+    "type": "chart",
+    "question": "画一个品牌销售额的柱状图",
+    "assert": {
+      "chart": true
+    }
+  },
+  {
+    "id": "c02",
+    "type": "chart",
+    "question": "用饼图展示品类销售占比",
+    "assert": {
+      "chart": true
+    }
+  },
+  {
+    "id": "c03",
+    "type": "chart",
+    "question": "把销量前十的商品画成条形图",
+    "assert": {
+      "chart": true
+    }
+  },
+  {
+    "id": "c04",
+    "type": "chart",
+    "question": "每日成交额趋势用折线图表示",
+    "assert": {
+      "chart": true
+    }
+  },
+  {
+    "id": "r01",
+    "type": "rag",
+    "question": "buy_count 是什么意思",
+    "assert": {
+      "keywords": [
+        "购买"
+      ]
+    }
+  },
+  {
+    "id": "r02",
+    "type": "rag",
+    "question": "客单价是怎么算的",
+    "assert": {
+      "keywords": [
+        "销售额"
+      ]
+    }
+  },
+  {
+    "id": "r03",
+    "type": "rag",
+    "question": "知识问答用的是什么技术",
+    "assert": {
+      "keywords": [
+        "检索"
+      ]
+    }
+  },
+  {
+    "id": "r04",
+    "type": "rag",
+    "question": "数据仓库分成哪几层",
+    "assert": {
+      "keywords": [
+        "ods"
+      ]
+    }
+  },
+  {
+    "id": "r05",
+    "type": "rag",
+    "question": "生成的 SQL 是怎么保证安全的",
+    "assert": {
+      "keywords": [
+        "校验"
+      ]
+    }
+  },
+  {
+    "id": "r06",
+    "type": "rag",
+    "question": "为什么只给模型看汇总表",
+    "assert": {
+      "keywords": [
+        "字段"
+      ]
+    }
+  },
+  {
+    "id": "a01",
+    "type": "advice",
+    "question": "给点运营建议",
+    "assert": {
+      "keywords": [
+        "建议"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "a02",
+    "type": "advice",
+    "question": "哪个品类需要优化",
+    "assert": {
+      "keywords": [
+        "建议"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "a03",
+    "type": "advice",
+    "question": "怎么提升整体销售额",
+    "assert": {
+      "keywords": [
+        "建议"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "a04",
+    "type": "advice",
+    "question": "品牌的策略有什么建议",
+    "assert": {
+      "keywords": [
+        "建议"
+      ],
+      "has_number": true
+    }
+  },
+  {
+    "id": "n01",
+    "type": "sql",
+    "question": "昨天卖了多少钱",
+    "assert": {
+      "table": "dws_daily_trend",
+      "keywords": [
+        "sales_amount"
+      ]
+    }
+  },
+  {
+    "id": "n02",
+    "type": "sql",
+    "question": "这个商品的库存还有多少",
+    "assert": {
+      "expect_no_sql": true
+    }
+  }
+]
