@@ -11,5 +11,5 @@
 
 前置：MySQL 8 在跑，Redis 在跑，`DEEPSEEK_API_KEY` 有余额。
 
-分层没丢：`ods_user_behavior`（原始）→ `dim_goods`/`fact_behavior`（清洗）→ 六张 `dws_` 汇总表。
+分层没丢：`ods_user_behavior`（原始）→ `dim_goods`/`fact_behavior`（清洗）→ 五张 `dws_` 汇总表。
 只是加工从 Hive 换成了 MySQL 的 `INSERT ... SELECT`。Hive 版本留在 `sql/hive_offline.sql`，论文写离线链路时引用它。

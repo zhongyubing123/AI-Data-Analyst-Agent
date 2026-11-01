@@ -9,9 +9,6 @@
 表 dws_category_sales(category, buy_count, item_count, buyer_count, sales_amount, avg_amount)
   品类维度。item_count 是该品类商品数。
 
-表 dws_price_band(price_level, item_count, pv_count, buy_count, buyer_count, sales_amount, convert_rate)
-  价格带维度。convert_rate 是购买次数除以浏览次数。
-
 表 dws_daily_trend(dt, pv_count, cart_count, buy_count, buyer_count, sales_amount)
   每日趋势。dt 形如 2025-08-01。
 

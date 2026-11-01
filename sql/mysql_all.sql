@@ -11,6 +11,9 @@ CREATE DATABASE IF NOT EXISTS ecommerce
 
 USE ecommerce;
 
+-- 旧结构里的价格带表已废弃
+DROP TABLE IF EXISTS dws_price_band;
+
 -- -------------------------------------------------------------
 -- 1. ODS：原始明细，字段与 CSV 表头一致
 -- -------------------------------------------------------------
@@ -37,6 +40,11 @@ INTO TABLE ods_user_behavior
 FIELDS TERMINATED BY ',' ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
 IGNORE 1 LINES;
+
+-- CSV 里的时间是 2025/1/1 14:33 这种格式，统一成 2025-01-01，避免字符串排序错乱
+UPDATE ods_user_behavior
+SET dt = DATE_FORMAT(STR_TO_DATE(dt, '%Y/%c/%e %H:%i'), '%Y-%m-%d')
+WHERE dt LIKE '%/% %:%';
 
 -- 如果 dt 列是空的时间戳，用下面这句补：
 -- UPDATE ods_user_behavior
@@ -195,38 +203,7 @@ GROUP BY g.category;
 
 
 -- -------------------------------------------------------------
--- 6. DWS 4：价格带
--- -------------------------------------------------------------
-DROP TABLE IF EXISTS dws_price_band;
-
-CREATE TABLE dws_price_band(
-  price_level VARCHAR(50) PRIMARY KEY,
-  item_count INT,
-  pv_count INT,
-  buy_count INT,
-  buyer_count INT,
-  sales_amount DECIMAL(12,2),
-  convert_rate DECIMAL(8,4)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-INSERT INTO dws_price_band
-SELECT
-  price_level,
-  COUNT(DISTINCT item_id),
-  SUM(IF(behavior='pv',1,0)),
-  SUM(IF(behavior='buy',1,0)),
-  COUNT(DISTINCT IF(behavior='buy', user_id, NULL)),
-  ROUND(SUM(IF(behavior='buy', price, 0)), 2),
-  ROUND(
-    SUM(IF(behavior='buy',1,0)) / NULLIF(SUM(IF(behavior='pv',1,0)), 0)
-  , 4)
-FROM fact_behavior
-WHERE price_level IS NOT NULL AND price_level <> ''
-GROUP BY price_level;
-
-
--- -------------------------------------------------------------
--- 7. DWS 5：每日趋势
+-- 6. DWS 4：每日趋势
 -- -------------------------------------------------------------
 DROP TABLE IF EXISTS dws_daily_trend;
 
@@ -252,7 +229,7 @@ GROUP BY SUBSTR(dt, 1, 10);
 
 
 -- -------------------------------------------------------------
--- 8. DWS 6：用户价值
+-- 7. DWS 5：用户价值
 -- -------------------------------------------------------------
 DROP TABLE IF EXISTS dws_user_value;
 
@@ -290,13 +267,12 @@ GROUP BY user_id;
 
 
 -- -------------------------------------------------------------
--- 9. 自检
+-- 8. 自检
 -- -------------------------------------------------------------
 SELECT 'ods' AS t, COUNT(*) AS n FROM ods_user_behavior
 UNION ALL SELECT 'fact', COUNT(*) FROM fact_behavior
 UNION ALL SELECT 'item', COUNT(*) FROM dws_item_hot
 UNION ALL SELECT 'brand', COUNT(*) FROM dws_brand_sales
 UNION ALL SELECT 'category', COUNT(*) FROM dws_category_sales
-UNION ALL SELECT 'price_band', COUNT(*) FROM dws_price_band
 UNION ALL SELECT 'daily', COUNT(*) FROM dws_daily_trend
 UNION ALL SELECT 'user', COUNT(*) FROM dws_user_value;

@@ -17,10 +17,11 @@ ORDER BY sales_amount DESC
 LIMIT 5
 """
 
-PRICE_SQL = """
-SELECT price_level, convert_rate, sales_amount
-FROM dws_price_band
+BRAND_SQL = """
+SELECT brand, sales_amount, buyer_count
+FROM dws_brand_sales
 ORDER BY sales_amount DESC
+LIMIT 5
 """
 
 
@@ -33,13 +34,13 @@ def run_advice(message, trace=None):
 
     categories = _rows(CATEGORY_SQL)
 
-    bands = _rows(PRICE_SQL)
+    brands = _rows(BRAND_SQL)
 
     prompt = f"""品类销售前五：
 {categories}
 
-价格带转化：
-{bands}
+品牌销售前五：
+{brands}
 
 问题：{message}
 
@@ -58,5 +59,5 @@ def run_advice(message, trace=None):
         "answer": answer,
         "chart": None,
         "sql": CATEGORY_SQL.strip(),
-        "rows": len(categories) + len(bands)
+        "rows": len(categories) + len(brands)
     }

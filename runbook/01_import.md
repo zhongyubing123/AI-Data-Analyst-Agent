@@ -1,6 +1,6 @@
 # 1. 导入数据与分层建表
 
-一条命令建完所有表：ODS 原始表、DWD 两张、DWS 六张汇总表。
+一条命令建完所有表：ODS 原始表、DWD 两张、DWS 五张汇总表。
 
 ## 1.1 改 CSV 路径
 
@@ -27,7 +27,6 @@ fact    69000
 item     3000
 brand      20
 category    8
-price_band  4
 daily      30
 user    20000
 ```

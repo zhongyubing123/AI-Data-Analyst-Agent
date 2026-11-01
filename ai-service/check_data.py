@@ -20,8 +20,6 @@ QUERIES = [
     ("购买最多的商品", "SELECT item_name, pv_count, buy_count FROM dws_item_hot "
                        "ORDER BY buy_count DESC LIMIT 5"),
     ("浏览大于购买的商品数", "SELECT COUNT(*) AS cnt FROM dws_item_hot WHERE pv_count > buy_count"),
-    ("价格带", "SELECT price_level, pv_count, buy_count, convert_rate "
-               "FROM dws_price_band ORDER BY price_level"),
 ]
 
 
