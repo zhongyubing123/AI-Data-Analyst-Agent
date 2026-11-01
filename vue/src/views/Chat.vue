@@ -1,7 +1,5 @@
 <template>
   <div class="chat-container">
-    <h2>Enterprise AI Data Analysis Agent</h2>
-
     <div class="chat-box" ref="box">
       <div
         v-for="(item,index) in messages"
@@ -9,11 +7,11 @@
         class="message"
       >
         <div v-if="item.role==='user'" class="user">
-          👤用户： {{ item.content }}
+          👤 {{ item.content }}
         </div>
 
         <div v-else class="assistant">
-          🤖助手： {{ item.content }}
+          🤖 {{ item.content }}
 
           <AIChart
             v-if="item.chart"
@@ -34,7 +32,7 @@
       <button
         v-for="text in examples"
         :key="text"
-        @click="fill(text)"
+        @click="question = text"
       >
         {{ text }}
       </button>
@@ -44,7 +42,7 @@
       <input
         v-model="question"
         @keyup.enter="sendMessage"
-        placeholder="请输入问题，例如：哪个品类卖得最好"
+        placeholder="问点什么，比如：哪个品牌客单价最高"
       />
 
       <button @click="sendMessage" :disabled="loading">
@@ -55,9 +53,15 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from "vue"
+import { ref, watch, nextTick } from "vue"
 import axios from "axios"
 import AIChart from "../components/AIChart.vue"
+
+const props = defineProps({
+  draft: { type: String, default: "" }
+})
+
+const emit = defineEmits(["used"])
 
 const question = ref("")
 const messages = ref([])
@@ -66,13 +70,20 @@ const box = ref(null)
 
 const examples = [
   "哪个品类卖得最好",
-  "浏览多但买得少的商品",
+  "哪个品牌客单价最高",
   "给点运营建议"
 ]
 
-const fill = (text) => {
-  question.value = text
-}
+// 点图带进来的名字，填进输入框，不自动发送
+watch(
+  () => props.draft,
+  (value) => {
+    if (value) {
+      question.value = value
+      emit("used")
+    }
+  }
+)
 
 const scrollBottom = async () => {
   await nextTick()
@@ -133,20 +144,24 @@ const sendMessage = async () => {
 
 <style scoped>
 .chat-container {
-  width: 900px;
-  margin: 30px auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 12px 16px 16px;
+  box-sizing: border-box;
 }
 
 .chat-box {
-  height: 600px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 6px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 20px;
+  padding-right: 6px;
 }
 
 .message {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+  font-size: 14px;
 }
 
 .user {
@@ -156,7 +171,7 @@ const sendMessage = async () => {
 
 .assistant {
   color: inherit;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .loading {
@@ -164,7 +179,7 @@ const sendMessage = async () => {
 }
 
 .evidence {
-  margin-top: 8px;
+  margin-top: 6px;
   font-size: 12px;
   opacity: 0.65;
 }
@@ -185,14 +200,14 @@ const sendMessage = async () => {
 
 .examples {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin: 8px 0;
   flex-wrap: wrap;
 }
 
 .examples button {
   width: auto;
-  padding: 4px 12px;
+  padding: 3px 10px;
   font-size: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -203,15 +218,17 @@ const sendMessage = async () => {
 
 .input-box {
   display: flex;
-  margin-top: 12px;
+  gap: 8px;
 }
 
 input {
   flex: 1;
-  padding: 10px;
+  padding: 8px;
+  min-width: 0;
 }
 
-button {
-  width: 100px;
+.input-box button {
+  width: 72px;
+  flex-shrink: 0;
 }
 </style>

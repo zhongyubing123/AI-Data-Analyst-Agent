@@ -294,3 +294,18 @@ code {
     border-right-color: var(--border);
   }
 }
+
+/* ---------- 整屏布局：覆盖模板自带的外边距和最大宽度 ---------- */
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+}

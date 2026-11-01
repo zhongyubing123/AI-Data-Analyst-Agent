@@ -1,11 +1,13 @@
 <template>
-  <div ref="chart" style="width:100%;height:400px"></div>
+  <div ref="chart" class="chart"></div>
 </template>
 
 <script setup>
 import * as echarts from "echarts"
 import { ref, onMounted } from "vue"
 import axios from "axios"
+
+const emit = defineEmits(["pick"])
 
 const chart = ref(null)
 
@@ -50,3 +52,11 @@ onMounted(async () => {
   })
 })
 </script>
+
+<style scoped>
+.chart {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <div ref="chart" style="width:100%;height:400px"></div>
+  <div ref="chart" class="chart"></div>
 </template>
 
 <script setup>
@@ -7,8 +7,11 @@ import * as echarts from "echarts"
 import { ref, onMounted, onBeforeUnmount } from "vue"
 import axios from "axios"
 
+const emit = defineEmits(["pick"])
+
 const chart = ref(null)
 let myChart = null
+let observer = null
 
 onMounted(async () => {
   try {
@@ -38,18 +41,26 @@ onMounted(async () => {
       ]
     })
 
-    window.addEventListener("resize", resizeChart)
+    myChart.on("click", (params) => emit("pick", params.name))
+
+    observer = new ResizeObserver(() => myChart?.resize())
+
+    observer.observe(chart.value)
   } catch (e) {
     console.error("加载品牌销售数据失败", e)
   }
 })
 
-const resizeChart = () => {
-  myChart?.resize()
-}
-
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", resizeChart)
+  observer?.disconnect()
   myChart?.dispose()
 })
 </script>
+
+<style scoped>
+.chart {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+}
+</style>
