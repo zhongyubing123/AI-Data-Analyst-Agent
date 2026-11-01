@@ -13,7 +13,7 @@
     </div>
 
     <div class="cell">
-      <UserChart @pick="pass" />
+      <DailyTrendChart />
     </div>
   </div>
 </template>
@@ -22,7 +22,7 @@
 import BrandChart from "@/components/BrandChart.vue"
 import CategoryChart from "@/components/CategoryChart.vue"
 import ItemHotChart from "@/components/ItemHotChart.vue"
-import UserChart from "@/components/UserChart.vue"
+import DailyTrendChart from "@/components/DailyTrendChart.vue"
 
 const emit = defineEmits(["pick"])
 

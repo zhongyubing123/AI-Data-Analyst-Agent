@@ -38,6 +38,16 @@ ORDER BY buy_count DESC
 LIMIT 20
 """
 
+DAILY_SQL = """
+SELECT dt,
+       sales_amount AS salesAmount,
+       buy_count    AS buyCount,
+       buyer_count  AS buyerCount
+FROM dws_daily_trend
+ORDER BY dt
+"""
+
+
 USER_SQL = """
 SELECT user_id AS userId,
        pv_count + fav_count + cart_count + buy_count AS behaviorCount,
@@ -71,3 +81,8 @@ def item_hot():
 def user_active():
 
     return _rows(USER_SQL)
+
+
+def daily_trend():
+
+    return _rows(DAILY_SQL)

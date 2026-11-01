@@ -13,38 +13,69 @@ const chart = ref(null)
 let myChart = null
 let observer = null
 
+const TOP = 10
+
+const toWan = (value) => (Number(value) / 10000).toFixed(1)
+
 onMounted(async () => {
   try {
     const { data } = await axios.get("/api/brand/sales")
 
+    const list = data.slice(0, TOP).map(item => ({
+      name: item.brand,
+      value: Number(item.salesAmount) || 0
+    }))
+
+    const rest = data.slice(TOP).reduce((sum, item) => sum + (Number(item.salesAmount) || 0), 0)
+
+    if (rest > 0) {
+      list.push({ name: "其他品牌", value: rest })
+    }
+
+    // 横向条形图从上到下按金额递减
+    list.reverse()
+
     myChart = echarts.init(chart.value)
 
     myChart.setOption({
-      title: {
-        text: "品牌销售占比"
-      },
+      title: { text: "品牌销售额 Top10（万元）", left: 8, top: 6, textStyle: { fontSize: 13 } },
+      grid: { left: 90, right: 60, top: 40, bottom: 20 },
       tooltip: {
-        trigger: "item"
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params) => {
+          const p = params[0]
+          return `${p.name}<br/>销售额：${toWan(p.value)} 万元`
+        }
       },
-      legend: {
-        bottom: 0
+      xAxis: { type: "value", splitLine: { show: false }, axisLabel: { show: false } },
+      yAxis: {
+        type: "category",
+        data: list.map(item => item.name),
+        axisTick: { show: false },
+        axisLine: { show: false }
       },
       series: [
         {
-          type: "pie",
-          radius: "60%",
-          data: data.map(item => ({
-            name: item.brand,
-            value: item.salesAmount
-          }))
+          type: "bar",
+          data: list.map(item => item.value),
+          barMaxWidth: 18,
+          itemStyle: { borderRadius: [0, 4, 4, 0] },
+          label: {
+            show: true,
+            position: "right",
+            formatter: (p) => toWan(p.value),
+            fontSize: 11
+          }
         }
       ]
     })
 
-    myChart.on("click", (params) => emit("pick", params.name))
+    myChart.on("click", (params) => {
+      if (params.name !== "其他品牌") emit("pick", params.name)
+    })
 
     observer = new ResizeObserver(() => myChart?.resize())
-
     observer.observe(chart.value)
   } catch (e) {
     console.error("加载品牌销售数据失败", e)

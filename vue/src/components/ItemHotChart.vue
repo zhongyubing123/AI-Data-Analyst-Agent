@@ -4,52 +4,77 @@
 
 <script setup>
 import * as echarts from "echarts"
-import { ref, onMounted } from "vue"
+import { ref, onMounted, onBeforeUnmount } from "vue"
 import axios from "axios"
 
 const emit = defineEmits(["pick"])
 
 const chart = ref(null)
+let myChart = null
+let observer = null
+
+const TOP = 10
+
+const shortName = (name) => (name && name.length > 12 ? name.slice(0, 12) + "…" : name)
 
 onMounted(async () => {
-  const res = await axios.get("/api/item/hot")
+  try {
+    const { data } = await axios.get("/api/item/hot")
 
-  const myChart = echarts.init(chart.value)
+    const list = data.slice(0, TOP).map(item => ({
+      name: item.itemName,
+      value: Number(item.buyCount) || 0
+    }))
 
-  myChart.setOption({
-    title: {
-      text: "商品热度排行"
-    },
-    tooltip: {
-      trigger: "axis"
-    },
-    legend: {
-      data: ["购买次数", "浏览次数"]
-    },
-    xAxis: {
-      type: "category",
-      data: res.data.map(item => item.itemName)
-    },
-    yAxis: {
-      type: "value"
-    },
-    series: [
-      {
-        name: "购买次数",
-        type: "bar",
-        data: res.data.map(item => item.buyCount)
+    list.reverse()
+
+    myChart = echarts.init(chart.value)
+
+    myChart.setOption({
+      title: { text: "商品销量 Top10（次）", left: 8, top: 6, textStyle: { fontSize: 13 } },
+      grid: { left: 150, right: 50, top: 40, bottom: 20 },
+      tooltip: {
+        trigger: "axis",
+        axisPointer: { type: "shadow" },
+        formatter: (params) => {
+          const p = params[0]
+          return `${p.name}<br/>销量：${p.value} 次`
+        }
       },
-      {
-        name: "浏览次数",
-        type: "bar",
-        data: res.data.map(item => item.pvCount)
-      }
-    ]
-  })
+      xAxis: { type: "value", splitLine: { show: false }, axisLabel: { show: false } },
+      yAxis: {
+        type: "category",
+        data: list.map(item => shortName(item.name)),
+        axisTick: { show: false },
+        axisLine: { show: false },
+        axisLabel: { fontSize: 11 }
+      },
+      series: [
+        {
+          type: "bar",
+          data: list.map(item => item.value),
+          barMaxWidth: 18,
+          itemStyle: { borderRadius: [0, 4, 4, 0] },
+          label: { show: true, position: "right", fontSize: 11 }
+        }
+      ]
+    })
 
-  window.addEventListener("resize", () => {
-    myChart.resize()
-  })
+    myChart.on("click", (params) => {
+      const index = params.dataIndex
+      emit("pick", list[index]?.name || params.name)
+    })
+
+    observer = new ResizeObserver(() => myChart?.resize())
+    observer.observe(chart.value)
+  } catch (e) {
+    console.error("加载商品销量数据失败", e)
+  }
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  myChart?.dispose()
 })
 </script>
 

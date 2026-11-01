@@ -53,3 +53,8 @@ def item_hot():
 @app.get("/api/user/active")
 def user_active():
     return dashboard_service.user_active()
+
+
+@app.get("/api/daily/trend")
+def daily_trend():
+    return dashboard_service.daily_trend()
