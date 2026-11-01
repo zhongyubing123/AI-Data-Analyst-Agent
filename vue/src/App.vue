@@ -69,7 +69,7 @@ const onPick = (name) => {
 }
 
 .right {
-  width: 400px;
+  width: 360px;
   flex-shrink: 0;
   border-left: 1px solid rgba(255, 255, 255, 0.15);
   display: flex;
@@ -77,7 +77,7 @@ const onPick = (name) => {
   min-height: 0;
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 860px) {
   .body {
     flex-direction: column;
   }

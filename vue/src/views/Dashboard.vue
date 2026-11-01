@@ -44,7 +44,7 @@ const pass = (name) => emit("pick", name)
   min-height: 300px;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 860px) {
   .grid {
     grid-template-columns: 1fr;
     height: auto;
