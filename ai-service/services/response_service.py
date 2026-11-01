@@ -15,7 +15,12 @@ def is_advice(message):
 
 def build_answer_prompt(data, message):
 
-    return f"数据：{data}\n\n问题：{message}\n\n按数据回答，三句话内，不要编造。"
+    return f"""数据：{data}
+
+问题：{message}
+
+按数据回答，三句话内。金额超过一万用万元表示，保留一位小数。不要编造。
+"""
 
 
 def build_advice_prompt(data, message):
@@ -25,7 +30,7 @@ def build_advice_prompt(data, message):
 问题：{message}
 
 按下面四段回答，每段一行，总字数不超过 150 字：
-现象：用数据说话，必须带数字
+现象：用数据说话，金额超过一万用万元表示
 推测：一句可能的原因，开头写"推测"
 建议：一条能落地的动作，不要空话
 参照：和均值或最高值比一句

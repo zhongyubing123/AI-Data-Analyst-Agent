@@ -7,7 +7,8 @@ from services.memory_service import resolve_context
 from services.sql_service import run_sql
 from services.rag_service import run_rag
 
-from services.response_service import generate_answer
+from services.response_service import generate_answer, is_advice
+from services.advice_service import run_advice
 from services.chart_service import generate_chart
 
 
@@ -44,6 +45,11 @@ def run_agent(message):
             trace.end_step("sql")
 
             if "error" in result:
+
+                # 建议类问题没有具体指标，SQL 生成会返回空，这时改查概览数据
+                if is_advice(message):
+
+                    return run_advice(message, trace=trace)
 
                 answer = result["error"]
 

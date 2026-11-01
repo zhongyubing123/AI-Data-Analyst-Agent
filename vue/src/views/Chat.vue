@@ -81,6 +81,23 @@ const scrollBottom = async () => {
   }
 }
 
+// 服务重启或瞬时断连时重试一次
+const postChat = async (text, retry = true) => {
+  try {
+    return await axios.post(
+      "http://127.0.0.1:8000/chat",
+      { message: text },
+      { timeout: 60000 }
+    )
+  } catch (e) {
+    if (retry) {
+      await new Promise(r => setTimeout(r, 800))
+      return postChat(text, false)
+    }
+    throw e
+  }
+}
+
 const sendMessage = async () => {
   if (!question.value.trim() || loading.value) return
 
@@ -93,11 +110,7 @@ const sendMessage = async () => {
   scrollBottom()
 
   try {
-    const res = await axios.post(
-      "http://127.0.0.1:8000/chat",
-      { message: text },
-      { timeout: 60000 }
-    )
+    const res = await postChat(text)
 
     messages.value.push({
       role: "assistant",
